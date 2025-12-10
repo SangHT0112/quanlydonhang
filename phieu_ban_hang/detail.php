@@ -14,6 +14,12 @@ if ($result->num_rows == 0) {
 
 $pbh = $result->fetch_assoc();
 
+// Kiểm tra đã có phiếu xuất kho chưa
+$sql_check_pxk = "SELECT ma_phieu_xuat_kho FROM phieu_xuat_kho WHERE ma_phieu_ban_hang = " . intval($id);
+$result_check_pxk = $conn->query($sql_check_pxk);
+$has_pxk = $result_check_pxk->num_rows > 0;
+$ma_pxk = $has_pxk ? $result_check_pxk->fetch_assoc()['ma_phieu_xuat_kho'] : null;
+
 // Lấy chi tiết sản phẩm
 $sql_ct = "SELECT ct.*, sp.ten_san_pham, sp.don_vi 
           FROM chi_tiet_phieu_ban_hang ct
@@ -90,6 +96,13 @@ $result_ct = $conn->query($sql_ct);
             </div>
 
             <div class="form-actions">
+                <?php if (hasPermission('execute_pxk') || hasRole('kho')): ?>
+                    <?php if ($has_pxk): ?>
+                        <a href="../phieu_xuat_kho/detail.php?id=<?php echo $ma_pxk; ?>" class="btn-info">Xem Phiếu Xuất Kho</a>
+                    <?php else: ?>
+                        <a href="../phieu_xuat_kho/create.php?ma_phieu_ban_hang=<?php echo $id; ?>" class="btn-primary">Tạo Phiếu Xuất Kho</a>
+                    <?php endif; ?>
+                <?php endif; ?>
                 <a href="list.php" class="btn-secondary">Quay Lại Danh Sách</a>
             </div>
         </main>

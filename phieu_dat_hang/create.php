@@ -10,6 +10,7 @@ if ($_POST) {
         $ma_kh = intval($_POST['ma_khach_hang']);
         $ngay_dat = $_POST['ngay_dat'];
         $ghi_chu = $_POST['ghi_chu'] ?? '';
+        $tong_tien = floatval($_POST['tong_tien'] ?? 0);
 
         // Kiểm tra dữ liệu
         if (empty($ngay_dat)) {
@@ -19,13 +20,13 @@ if ($_POST) {
         // Bắt đầu transaction
         $conn->begin_transaction();
 
-        // Tạo phiếu đặt hàng
-        $sql_po = "INSERT INTO phieu_dat_hang (ma_khach_hang, ngay_dat, ghi_chu, trang_thai) VALUES (?, ?, ?, 'Chờ duyệt')";
+        // Tạo phiếu đặt hàng với tổng tiền
+        $sql_po = "INSERT INTO phieu_dat_hang (ma_khach_hang, ngay_dat, ghi_chu, trang_thai, tong_tien) VALUES (?, ?, ?, 'Chờ duyệt', ?)";
         $stmt_po = $conn->prepare($sql_po);
         if (!$stmt_po) {
             throw new Exception('Lỗi prepare: ' . $conn->error);
         }
-        $stmt_po->bind_param("iss", $ma_kh, $ngay_dat, $ghi_chu);
+        $stmt_po->bind_param("issd", $ma_kh, $ngay_dat, $ghi_chu, $tong_tien);
         if (!$stmt_po->execute()) {
             throw new Exception('Lỗi tạo phiếu đặt hàng: ' . $stmt_po->error);
         }
@@ -55,7 +56,7 @@ if ($_POST) {
         }
 
         $conn->commit();
-        logActivity('CREATE_PO', 'Tạo phiếu đặt hàng #' . $ma_po);
+        logActivity('CREATE_PO', 'Tạo phiếu đặt hàng #' . $ma_po . ' với tổng tiền: ' . formatMoney($tong_tien));
         
         header('Location: detail.php?id=' . $ma_po);
         exit;
@@ -101,11 +102,11 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
                 </div>
                 <div class="form-group">
                     <label>Số Lượng:</label>
-                    <input type="number" name="so_luong_${productCount}" min="1" value="1" class="quantity-input">
+                    <input type="number" name="so_luong_${productCount}" min="1" value="1" class="quantity-input" onchange="calculateTotal()">
                 </div>
                 <div class="form-group">
                     <label>Giá Đặt:</label>
-                    <input type="number" name="gia_dat_${productCount}" step="0.01" min="0" value="0" class="price-input">
+                    <input type="number" name="gia_dat_${productCount}" step="0.01" min="0" value="0" class="price-input" onchange="calculateTotal()">
                 </div>
                 <button type="button" class="btn-danger" onclick="removeProduct(this)">Xóa</button>
             `;
@@ -117,10 +118,37 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
             const option = select.options[select.selectedIndex];
             const price = option.getAttribute('data-price') || 0;
             document.querySelector(`input[name="gia_dat_${index}"]`).value = price;
+            calculateTotal();
         }
 
         function removeProduct(btn) {
             btn.parentElement.remove();
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            const priceInputs = document.querySelectorAll('.price-input');
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+            
+            for (let i = 0; i < priceInputs.length; i++) {
+                const price = parseFloat(priceInputs[i].value) || 0;
+                const quantity = parseInt(quantityInputs[i].value) || 0;
+                total += price * quantity;
+            }
+            
+            // Cập nhật hiển thị tổng tiền
+            const totalDisplay = document.getElementById('total-display');
+            if (totalDisplay) {
+                totalDisplay.textContent = 'Tổng Tiền: ' + formatCurrency(total) + ' VNĐ';
+            }
+            
+            // Cập nhật giá trị input hidden
+            document.getElementById('tong_tien').value = total;
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('vi-VN').format(value);
         }
 
         window.onload = function() {
@@ -168,6 +196,14 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
 
                     <div style="margin-top: 20px;">
                         <button type="button" class="btn-secondary" onclick="addProduct()">+ Thêm Sản Phẩm</button>
+                    </div>
+
+                    <!-- Input hidden để lưu tổng tiền -->
+                    <input type="hidden" id="tong_tien" name="tong_tien" value="0">
+
+                    <!-- Hiển thị tổng tiền -->
+                    <div style="margin-top: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 5px; font-weight: bold;">
+                        <h3 id="total-display">Tổng Tiền: 0 VNĐ</h3>
                     </div>
 
                     <div class="form-actions">
