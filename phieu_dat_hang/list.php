@@ -103,6 +103,15 @@ $result = $stmt->get_result();
                                     echo "<a href='delete.php?id=" . $row['ma_phieu_dat_hang'] . "' class='btn-danger' onclick='return confirm(\"Bạn chắc chắn muốn xóa?\")'>Xóa</a>";
                                 }
                             }
+                            if (
+    $row['trang_thai'] == 'Đã duyệt' &&
+    hasPermission('create_invoice')
+) {
+    echo "<a href='../invoice/create.php?po_id=" . $row['ma_phieu_dat_hang'] . "' class='btn-primary'>
+            Tạo hóa đơn
+          </a> ";
+}
+
                             echo "</td>";
                             echo "</tr>";
                         }
