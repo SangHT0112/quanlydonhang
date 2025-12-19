@@ -1,65 +1,82 @@
+<!-- create.php -->
 <?php
 include '../config.php';
+requirePermission('create_po');
 checkLogin();
 
 $error = '';
 $success = '';
 
-if ($_POST) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $ma_kh = intval($_POST['ma_khach_hang']);
-        $ngay_dat = $_POST['ngay_dat'];
-        $ghi_chu = $_POST['ghi_chu'] ?? '';
-        $tong_tien = floatval($_POST['tong_tien'] ?? 0);
+        $ma_kh     = intval($_POST['ma_khach_hang']);
+        $ngay_dat  = $_POST['ngay_dat'];
+        $ghi_chu   = $_POST['ghi_chu'] ?? '';
+        $tong_tien = floatval($_POST['tong_tien']);
+        $user_id   = intval($_SESSION['user_id']);
 
-        // Kiểm tra dữ liệu
-        if (empty($ngay_dat)) {
-            throw new Exception('Vui lòng chọn ngày đặt hàng');
+        if (!$ma_kh || !$ngay_dat) {
+            throw new Exception('Thiếu thông tin bắt buộc');
         }
 
-        // Bắt đầu transaction
         $conn->begin_transaction();
 
-        // Tạo phiếu đặt hàng với tổng tiền
-        $sql_po = "INSERT INTO phieu_dat_hang (ma_khach_hang, ngay_dat, ghi_chu, trang_thai, tong_tien) VALUES (?, ?, ?, 'Chờ duyệt', ?)";
+        // 1️⃣ INSERT PHIẾU ĐẶT HÀNG (CHỈ 1 LẦN)
+        $sql_po = "
+            INSERT INTO phieu_dat_hang
+            (ma_khach_hang, ngay_dat, tong_tien, ghi_chu, trang_thai, created_by)
+            VALUES (?, ?, ?, ?, 'Chờ duyệt', ?)
+        ";
         $stmt_po = $conn->prepare($sql_po);
-        if (!$stmt_po) {
-            throw new Exception('Lỗi prepare: ' . $conn->error);
-        }
-        $stmt_po->bind_param("issd", $ma_kh, $ngay_dat, $ghi_chu, $tong_tien);
-        if (!$stmt_po->execute()) {
-            throw new Exception('Lỗi tạo phiếu đặt hàng: ' . $stmt_po->error);
-        }
+        $stmt_po->bind_param("isdsi", $ma_kh, $ngay_dat, $tong_tien, $ghi_chu, $user_id);
+        $stmt_po->execute();
         $ma_po = $conn->insert_id;
 
-        // Thêm chi tiết sản phẩm
-        $products = [];
-        $i = 0;
-        while (isset($_POST['ma_san_pham_' . $i])) {
-            $ma_sp = intval($_POST['ma_san_pham_' . $i]);
-            $sl = intval($_POST['so_luong_' . $i]);
-            $gia = floatval($_POST['gia_dat_' . $i]);
+        // 2️⃣ INSERT CHI TIẾT SẢN PHẨM (SỬA: BẮT ĐẦU I=1 VÌ JS TỪ 1)
+        $i = 1;  // Thay đổi nhỏ: Giữ nguyên while, chỉ start i=1 để khớp JS productCount=1
+        while (isset($_POST["ma_san_pham_$i"])) {
+            $ma_sp = intval($_POST["ma_san_pham_$i"]);
+            $sl    = intval($_POST["so_luong_$i"]);
+            $gia   = floatval($_POST["gia_dat_$i"]);
 
-            if ($sl > 0 && $gia >= 0) {
-                $sql_ct = "INSERT INTO chi_tiet_phieu_dat_hang (ma_phieu_dat_hang, ma_san_pham, so_luong, gia_dat) 
-                          VALUES (?, ?, ?, ?)";
-                $stmt_ct = $conn->prepare($sql_ct);
-                if (!$stmt_ct) {
-                    throw new Exception('Lỗi prepare chi tiết: ' . $conn->error);
-                }
+            if ($ma_sp && $sl > 0 && $gia >= 0) {
+                $stmt_ct = $conn->prepare("
+                    INSERT INTO chi_tiet_phieu_dat_hang
+                    (ma_phieu_dat_hang, ma_san_pham, so_luong, gia_dat)
+                    VALUES (?, ?, ?, ?)
+                ");
                 $stmt_ct->bind_param("iiid", $ma_po, $ma_sp, $sl, $gia);
-                if (!$stmt_ct->execute()) {
-                    throw new Exception('Lỗi thêm chi tiết: ' . $stmt_ct->error);
-                }
+                $stmt_ct->execute();
             }
             $i++;
         }
 
+        // 3️⃣ GỬI REALTIME CHO KẾ TOÁN
+        $payload = [
+            'event' => 'po_created',
+            'room'  => 'ketoan',
+            'data'  => [
+                'ma_phieu' => $ma_po,
+                'message'  => "Có đơn hàng mới #$ma_po từ phòng kinh doanh"
+            ]
+        ];
+
+        $ch = curl_init('http://localhost:4000/emit');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS => json_encode($payload)
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+
         $conn->commit();
-        logActivity('CREATE_PO', 'Tạo phiếu đặt hàng #' . $ma_po . ' với tổng tiền: ' . formatMoney($tong_tien));
-        
-        header('Location: detail.php?id=' . $ma_po);
+
+        logActivity('CREATE_PO', "Tạo phiếu đặt hàng #$ma_po");
+
+        header("Location: detail.php?id=$ma_po");
         exit;
+
     } catch (Exception $e) {
         $conn->rollback();
         $error = $e->getMessage();

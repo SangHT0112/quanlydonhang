@@ -1,0 +1,24 @@
+{
+  "name": "quanlydonhang",
+  "version": "1.0.0",
+  "description": "Một ứng dụng web hoàn chỉnh để quản lý quy trình kinh doanh bán hàng từ đặt hàng đến thanh toán.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SangHT0112/quanlydonhang.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SangHT0112/quanlydonhang/issues"
+  },
+  "homepage": "https://github.com/SangHT0112/quanlydonhang#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.1"
+  }
+}

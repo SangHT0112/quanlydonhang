@@ -16,7 +16,7 @@ if ($_POST) {
 
         if ($action == 'login') {
 
-            $sql = "SELECT id, username, password, full_name, status 
+            $sql = "SELECT id, username, password, full_name, status, role 
                     FROM users 
                     WHERE username = ? LIMIT 1";
             $stmt = $conn->prepare($sql);
@@ -31,14 +31,17 @@ if ($_POST) {
                     throw new Exception('Tài khoản này đã bị khóa. Liên hệ quản trị viên.');
                 }
 
-                // ❗ KIỂM TRA MẬT KHẨU THƯỜNG
+                // ❗ KIỂM TRA MẬT KHẨU THƯỜNG (Khuyến nghị: Nâng cấp lên hash password với password_verify() sau)
                 if ($password === $user['password']) {
 
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_name'] = $user['full_name'];
                     $_SESSION['username'] = $user['username'];
+                    
+                    // THÊM MỚI: Set role từ DB (giả sử cột 'role' trong users: 'sale', 'ketoan', 'admin', etc.)
+                    $_SESSION['role'] = $user['role'] ?? 'guest';
 
-                    logActivity("LOGIN", "Đăng nhập thành công");
+                    logActivity("LOGIN", "Đăng nhập thành công - Role: " . $_SESSION['role']);
                     header("Location: index.php");
                     exit;
 
