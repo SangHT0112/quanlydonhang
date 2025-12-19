@@ -28,7 +28,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
             <?php if (hasPermission('execute_pxk') || hasRole('kho')): ?>
                 <li><a href="/phieu_xuat_kho/list.php" class="<?= strpos($current_path,'/phieu_xuat_kho')!==false ? 'active' : '' ?>">Phiếu Xuất Kho</a></li>
             <?php endif; ?>
-            <?php if (hasPermission('create_invoice') || hasPermission('issue_invoice')): ?>
+            <?php if (hasPermission('create_invoice') || hasPermission('issue_invoice') || hasPermission('view_invoice' )): ?>
                 <li><a href="/hoa_don/list.php" class="<?= strpos($current_path,'/hoa_don')!==false ? 'active' : '' ?>">Hóa Đơn</a></li>
             <?php endif; ?>
             <?php if (hasPermission('record_payment')): ?>
