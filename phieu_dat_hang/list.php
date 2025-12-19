@@ -104,13 +104,14 @@ $result = $stmt->get_result();
                                 }
                             }
                             if (
-    $row['trang_thai'] == 'Đã duyệt' &&
-    hasPermission('create_invoice')
-) {
-    echo "<a href='../invoice/create.php?po_id=" . $row['ma_phieu_dat_hang'] . "' class='btn-primary'>
-            Tạo hóa đơn
-          </a> ";
-}
+                                $row['trang_thai'] == 'Đã duyệt' &&
+                                hasPermission('create_invoice')
+                            ) {
+                                echo "<a href='../hoa_don/create.php?ma_po=" . $row['ma_phieu_dat_hang'] . "' class='btn-primary'>
+                                    Tạo hóa đơn
+                                </a>";
+
+                            }
 
                             echo "</td>";
                             echo "</tr>";
