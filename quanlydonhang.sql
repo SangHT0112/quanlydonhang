@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 19, 2025 at 03:41 AM
+-- Generation Time: Dec 19, 2025 at 06:19 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -149,7 +149,24 @@ INSERT INTO `activity_log` (`id`, `user`, `action`, `details`, `timestamp`) VALU
 (107, 'Sale 1', 'DELETE_PO', 'Xóa phiếu đặt hàng #24', '2025-12-18 17:02:10'),
 (108, 'Sale 1', 'DELETE_PO', 'Xóa phiếu đặt hàng #25', '2025-12-18 17:02:13'),
 (109, 'Sale 1', 'DELETE_PO', 'Xóa phiếu đặt hàng #26', '2025-12-18 17:02:15'),
-(110, 'Sale 1', 'DELETE_PO', 'Xóa phiếu đặt hàng #20', '2025-12-18 17:02:17');
+(110, 'Sale 1', 'DELETE_PO', 'Xóa phiếu đặt hàng #20', '2025-12-18 17:02:17'),
+(111, 'Sale 1', 'LOGIN', 'Đăng nhập thành công - Role: sale', '2025-12-19 04:10:55'),
+(112, 'Kế Toán 1', 'LOGIN', 'Đăng nhập thành công - Role: ketoan', '2025-12-19 04:11:06'),
+(113, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #27', '2025-12-19 04:11:32'),
+(114, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #28', '2025-12-19 04:12:25'),
+(115, 'Sale 1', 'LOGIN', 'Đăng nhập thành công - Role: sale', '2025-12-19 04:16:57'),
+(116, 'Kế Toán 1', 'LOGIN', 'Đăng nhập thành công - Role: ketoan', '2025-12-19 04:17:02'),
+(117, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #29', '2025-12-19 04:17:11'),
+(118, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #30', '2025-12-19 04:17:27'),
+(119, 'Kế Toán 1', 'APPROVE_PO', 'Duyệt PO #30', '2025-12-19 04:18:10'),
+(120, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #27', '2025-12-19 04:37:12'),
+(121, 'Sale 1', 'DELETE_PO', 'Xóa phiếu đặt hàng #28', '2025-12-19 04:43:59'),
+(122, 'Sale 1', 'DELETE_PO', 'Xóa phiếu đặt hàng #29', '2025-12-19 04:44:03'),
+(123, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #31', '2025-12-19 04:49:07'),
+(124, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #31', '2025-12-19 04:54:31'),
+(125, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #32', '2025-12-19 05:08:16'),
+(126, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #32', '2025-12-19 05:08:30'),
+(127, 'Kho 1', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-19 06:15:52');
 
 -- --------------------------------------------------------
 
@@ -166,6 +183,13 @@ CREATE TABLE `chi_tiet_hoa_don` (
   `chiet_khau` decimal(15,2) DEFAULT 0.00,
   `thanh_tien` decimal(15,2) GENERATED ALWAYS AS (`so_luong` * `don_gia` - `chiet_khau`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chi_tiet_hoa_don`
+--
+
+INSERT INTO `chi_tiet_hoa_don` (`ma_chi_tiet`, `ma_hoa_don`, `ma_san_pham`, `so_luong`, `don_gia`, `chiet_khau`) VALUES
+(3, 3, 2, 1, 500000.00, 0.00);
 
 --
 -- Triggers `chi_tiet_hoa_don`
@@ -235,6 +259,14 @@ CREATE TABLE `chi_tiet_phieu_dat_hang` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Dumping data for table `chi_tiet_phieu_dat_hang`
+--
+
+INSERT INTO `chi_tiet_phieu_dat_hang` (`ma_chi_tiet`, `ma_phieu_dat_hang`, `ma_san_pham`, `so_luong`, `gia_dat`) VALUES
+(20, 31, 2, 1, 500000.00),
+(21, 32, 2, 1, 500000.00);
+
+--
 -- Triggers `chi_tiet_phieu_dat_hang`
 --
 DELIMITER $$
@@ -289,12 +321,20 @@ CREATE TABLE `chi_tiet_tra_hang` (
 
 CREATE TABLE `hoa_don` (
   `ma_hoa_don` int(11) NOT NULL,
-  `ma_phieu_xuat_kho` int(11) NOT NULL,
+  `ma_phieu_dat_hang` int(11) NOT NULL,
+  `ma_phieu_xuat_kho` int(11) DEFAULT NULL,
   `ngay_xuat_hd` date NOT NULL,
   `tong_tien` decimal(15,2) DEFAULT 0.00,
   `khuyen_mai_tong` decimal(15,2) DEFAULT 0.00,
   `trang_thai` enum('Chưa thanh toán','Đã thanh toán','Công nợ') DEFAULT 'Chưa thanh toán'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `hoa_don`
+--
+
+INSERT INTO `hoa_don` (`ma_hoa_don`, `ma_phieu_dat_hang`, `ma_phieu_xuat_kho`, `ngay_xuat_hd`, `tong_tien`, `khuyen_mai_tong`, `trang_thai`) VALUES
+(3, 31, NULL, '2025-12-19', 500000.00, 0.00, 'Chưa thanh toán');
 
 -- --------------------------------------------------------
 
@@ -419,7 +459,8 @@ CREATE TABLE `phieu_dat_hang` (
 --
 
 INSERT INTO `phieu_dat_hang` (`ma_phieu_dat_hang`, `ma_khach_hang`, `ngay_dat`, `tong_tien`, `created_by`, `approved_by`, `approved_at`, `trang_thai`, `ghi_chu`) VALUES
-(18, 1, '2025-12-17', 15500000.00, 2, 3, NULL, 'Đã duyệt', '');
+(31, 1, '2025-12-19', 500000.00, 2, 2, NULL, 'Đã duyệt', ''),
+(32, 1, '2025-12-19', 500000.00, 2, 2, NULL, 'Đã duyệt', '');
 
 -- --------------------------------------------------------
 
@@ -511,12 +552,12 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (6, 17),
 (6, 18),
 (6, 19),
+(6, 20),
 (6, 21),
 (6, 35),
 (6, 36),
 (6, 37),
 (7, 19),
-(7, 20),
 (7, 22),
 (7, 23),
 (7, 24),
@@ -610,7 +651,7 @@ CREATE TABLE `ton_kho` (
 
 INSERT INTO `ton_kho` (`ma_ton_kho`, `ma_san_pham`, `so_luong_ton`, `ngay_cap_nhat`) VALUES
 (1, 1, 10, '2025-11-27 20:10:13'),
-(2, 2, 50, '2025-11-27 20:10:13');
+(2, 2, 49, '2025-12-19 11:19:29');
 
 -- --------------------------------------------------------
 
@@ -860,13 +901,13 @@ ALTER TABLE `user_roles`
 -- AUTO_INCREMENT for table `activity_log`
 --
 ALTER TABLE `activity_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_hoa_don`
 --
 ALTER TABLE `chi_tiet_hoa_don`
-  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_phieu_ban_hang`
@@ -878,7 +919,7 @@ ALTER TABLE `chi_tiet_phieu_ban_hang`
 -- AUTO_INCREMENT for table `chi_tiet_phieu_dat_hang`
 --
 ALTER TABLE `chi_tiet_phieu_dat_hang`
-  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_phieu_xuat_kho`
@@ -896,7 +937,7 @@ ALTER TABLE `chi_tiet_tra_hang`
 -- AUTO_INCREMENT for table `hoa_don`
 --
 ALTER TABLE `hoa_don`
-  MODIFY `ma_hoa_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ma_hoa_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `khach_hang`
@@ -926,7 +967,7 @@ ALTER TABLE `phieu_ban_hang`
 -- AUTO_INCREMENT for table `phieu_dat_hang`
 --
 ALTER TABLE `phieu_dat_hang`
-  MODIFY `ma_phieu_dat_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `ma_phieu_dat_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `phieu_xuat_kho`
