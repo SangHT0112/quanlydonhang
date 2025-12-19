@@ -1,7 +1,7 @@
 <?php
 include '../config.php';
 checkLogin();
-requirePermission('submit_po');  // Giả sử đã thêm
+
 
 $id = intval($_GET['id']);
 

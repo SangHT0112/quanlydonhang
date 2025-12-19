@@ -80,9 +80,6 @@ $items = $stmt_items->get_result();
 
             <div class="actions">
                 <a href="list.php" class="btn-secondary">← Quay lại danh sách</a>
-                <?php if ($po['trang_thai'] == 'Chờ duyệt' && hasPermission('submit_po')): ?>
-                    <a href="submit.php?id=<?= $id ?>" class="btn-warning">Gửi Duyệt</a>
-                <?php endif; ?>
                 <?php if ($po['trang_thai'] == 'Chờ duyệt' && hasPermission('approve_po')): ?>
                     <a href="approve.php?id=<?= $id ?>" class="btn-primary">Duyệt</a>
                 <?php endif; ?>

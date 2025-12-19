@@ -19,7 +19,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
             <?php if (hasPermission('manage_users')): ?>
                 <li><a href="/san_pham/list.php" class="<?= strpos($current_path,'/san_pham')!==false ? 'active' : '' ?>">Sản Phẩm</a></li>
             <?php endif; ?>
-            <?php if (hasPermission('create_po') || hasPermission('approve_po')): ?>
+            <?php if (hasPermission('view_po')): ?>
                 <li><a href="/phieu_dat_hang/list.php" class="<?= strpos($current_path,'/phieu_dat_hang')!==false ? 'active' : '' ?>">Phiếu Đặt Hàng</a></li>
             <?php endif; ?>
             <?php if (hasPermission('create_bh')): ?>
