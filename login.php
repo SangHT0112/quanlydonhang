@@ -35,10 +35,8 @@ if ($_POST) {
                 if ($password === $user['password']) {
 
                     $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_name'] = $user['full_name'];
                     $_SESSION['username'] = $user['username'];
-                    
-                    // THÊM MỚI: Set role từ DB (giả sử cột 'role' trong users: 'sale', 'ketoan', 'admin', etc.)
+                    $_SESSION['full_name'] = $user['full_name'];  // ← SỬA: Đổi key thành 'full_name' cho nhất quán
                     $_SESSION['role'] = $user['role'] ?? 'guest';
 
                     logActivity("LOGIN", "Đăng nhập thành công - Role: " . $_SESSION['role']);

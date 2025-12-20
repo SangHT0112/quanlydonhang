@@ -7,10 +7,22 @@ $search = $_GET['search'] ?? '';
 $trang_thai = $_GET['trang_thai'] ?? '';
 
 // Xây dựng câu SQL tìm kiếm (sửa: prepared)
-$sql = "SELECT p.ma_phieu_dat_hang, k.ten_khach_hang, p.ngay_dat, p.tong_tien, p.trang_thai 
-        FROM phieu_dat_hang p 
-        JOIN khach_hang k ON p.ma_khach_hang = k.ma_khach_hang 
-        WHERE 1=1";
+$sql = "
+SELECT 
+    p.ma_phieu_dat_hang,
+    k.ten_khach_hang,
+    p.ngay_dat,
+    p.tong_tien,
+    p.trang_thai,
+    hd.ma_hoa_don
+FROM phieu_dat_hang p
+JOIN khach_hang k 
+    ON p.ma_khach_hang = k.ma_khach_hang
+LEFT JOIN hoa_don hd 
+    ON hd.ma_phieu_dat_hang = p.ma_phieu_dat_hang
+WHERE 1=1
+";
+
 $params = [];
 $types = "";
 
@@ -103,15 +115,20 @@ $result = $stmt->get_result();
                                     echo "<a href='delete.php?id=" . $row['ma_phieu_dat_hang'] . "' class='btn-danger' onclick='return confirm(\"Bạn chắc chắn muốn xóa?\")'>Xóa</a>";
                                 }
                             }
-                            if (
-                                $row['trang_thai'] == 'Đã duyệt' &&
-                                hasPermission('create_invoice')
-                            ) {
-                                echo "<a href='../hoa_don/create.php?ma_po=" . $row['ma_phieu_dat_hang'] . "' class='btn-primary'>
-                                    Tạo hóa đơn
-                                </a>";
+                           if ($row['trang_thai'] == 'Đã duyệt' && hasPermission('create_invoice')) {
 
+                            if ($row['ma_hoa_don']) {
+                                // ✅ ĐÃ TẠO HÓA ĐƠN
+                                echo "<span class='badge badge-success'>Đã tạo hóa đơn</span>";
+                            } else {
+                                // 🟢 CHƯA TẠO
+                                echo "<a href='../hoa_don/create.php?ma_po={$row['ma_phieu_dat_hang']}'
+                                        class='btn-primary'>
+                                        Tạo hóa đơn
+                                    </a>";
                             }
+                        }
+
 
                             echo "</td>";
                             echo "</tr>";

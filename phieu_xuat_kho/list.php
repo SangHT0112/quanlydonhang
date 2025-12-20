@@ -1,33 +1,58 @@
 <?php
+// ===============================
+// phieu_xuat_kho/list.php
+// Danh sách phiếu xuất kho
+// ===============================
+
 include '../config.php';
 checkLogin();
-requirePermission('execute_pxk');
+requirePermission('view_inventory');  // Hoặc permission phù hợp cho xem PXK
 
-$search = '';
-$trang_thai = '';
-if ($_GET) {
-    $search = $_GET['search'] ?? '';
-    $trang_thai = $_GET['trang_thai'] ?? '';
-}
+$search = $_GET['search'] ?? '';
+$trang_thai = $_GET['trang_thai'] ?? '';
 
-// Xây dựng câu SQL tìm kiếm
-$sql = "SELECT pxk.ma_phieu_xuat_kho, pxk.ma_phieu_ban_hang, pxk.ngay_xuat, pxk.nguoi_xuat, pxk.trang_thai,
-               pbh.ngay_lap, pbh.tong_tien
-        FROM phieu_xuat_kho pxk 
-        JOIN phieu_ban_hang pbh ON pxk.ma_phieu_ban_hang = pbh.ma_phieu_ban_hang
-        WHERE 1=1";
+// Xây dựng câu SQL tìm kiếm (prepared)
+$sql = "
+    SELECT 
+        pxk.ma_phieu_xuat_kho,
+        pxk.ngay_xuat,
+        pxk.nguoi_xuat,
+        pxk.trang_thai,
+        pbh.tong_tien,
+        pdh.ma_phieu_dat_hang,
+        k.ten_khach_hang
+    FROM phieu_xuat_kho pxk
+    JOIN phieu_ban_hang pbh ON pxk.ma_phieu_ban_hang = pbh.ma_phieu_ban_hang
+    JOIN phieu_dat_hang pdh ON pbh.ma_phieu_dat_hang = pdh.ma_phieu_dat_hang
+    JOIN khach_hang k ON pdh.ma_khach_hang = k.ma_khach_hang
+    WHERE 1=1
+";
+
+$params = [];
+$types = "";
 
 if ($search) {
-    $search = $conn->real_escape_string($search);
-    $sql .= " AND (pxk.ma_phieu_xuat_kho LIKE '%$search%' OR pxk.ma_phieu_ban_hang LIKE '%$search%')";
+    $sql .= " AND (k.ten_khach_hang LIKE ? OR pxk.ma_phieu_xuat_kho LIKE ? OR pxk.nguoi_xuat LIKE ?)";
+    $search_param = "%$search%";
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $types .= "sss";
 }
+
 if ($trang_thai) {
-    $trang_thai = $conn->real_escape_string($trang_thai);
-    $sql .= " AND pxk.trang_thai = '$trang_thai'";
+    $sql .= " AND pxk.trang_thai = ?";
+    $params[] = $trang_thai;
+    $types .= "s";
 }
 
 $sql .= " ORDER BY pxk.ngay_xuat DESC";
-$result = $conn->query($sql);
+$stmt = $conn->prepare($sql);
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -44,7 +69,7 @@ $result = $conn->query($sql);
         <main>
             <div class="filter-section">
                 <form method="GET" class="filter-form">
-                    <input type="text" name="search" placeholder="Tìm kiếm mã phiếu..." value="<?php echo htmlspecialchars($search); ?>">
+                    <input type="text" name="search" placeholder="Tìm kiếm khách hàng, người xuất..." value="<?php echo htmlspecialchars($search); ?>">
                     
                     <select name="trang_thai">
                         <option value="">-- Tất cả trạng thái --</option>
@@ -57,13 +82,20 @@ $result = $conn->query($sql);
                 </form>
             </div>
 
+            <div class="actions-section">
+                <?php if (hasPermission('create_pxk')): ?>
+                    <a href="../hoa_don/list.php" class="btn-primary">+ Tạo Phiếu Xuất Kho Mới (từ HD)</a>
+                <?php endif; ?>
+            </div>
+
             <table class="table">
                 <thead>
                     <tr>
                         <th>Mã PXK</th>
-                        <th>Mã PBH</th>
                         <th>Ngày Xuất</th>
                         <th>Người Xuất</th>
+                        <th>Khách Hàng</th>
+                        <th>Tổng Tiền</th>
                         <th>Trạng Thái</th>
                         <th>Hành Động</th>
                     </tr>
@@ -72,25 +104,26 @@ $result = $conn->query($sql);
                     <?php
                     if ($result->num_rows > 0) {
                         while($row = $result->fetch_assoc()) {
+                            $status_class = strtolower(str_replace(' ', '-', $row['trang_thai']));
                             echo "<tr>";
                             echo "<td><strong>#" . $row['ma_phieu_xuat_kho'] . "</strong></td>";
-                            echo "<td>#" . $row['ma_phieu_ban_hang'] . "</td>";
                             echo "<td>" . date('d/m/Y', strtotime($row['ngay_xuat'])) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['nguoi_xuat'] ?? 'N/A') . "</td>";
-                            echo "<td><span class='status-" . strtolower(str_replace(' ', '-', $row['trang_thai'])) . "'>" . $row['trang_thai'] . "</span></td>";
+                            echo "<td>" . htmlspecialchars($row['nguoi_xuat']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['ten_khach_hang']) . "</td>";
+                            echo "<td>" . formatMoney($row['tong_tien']) . " VNĐ</td>";
+                            echo "<td><span class='status-" . $status_class . "'>" . $row['trang_thai'] . "</span></td>";
                             echo "<td>";
                             echo "<a href='detail.php?id=" . $row['ma_phieu_xuat_kho'] . "' class='btn-info'>Xem</a> ";
-                            echo "<a href='print.php?id=" . $row['ma_phieu_xuat_kho'] . "' class='btn-secondary' target='_blank'>In</a>";
-                            if ($row['trang_thai'] == 'Đang xuất') {
-                                echo " <a href='edit.php?id=" . $row['ma_phieu_xuat_kho'] . "' class='btn-warning'>Sửa</a> ";
-                                echo "<a href='delete.php?id=" . $row['ma_phieu_xuat_kho'] . "' class='btn-danger' onclick='return confirm(\"Bạn chắc chắn muốn xóa phiếu xuất kho này?\")'>Xóa</a> ";
-                                echo "<a href='complete.php?id=" . $row['ma_phieu_xuat_kho'] . "' class='btn-primary' onclick='return confirm(\"Bạn chắc chắn muốn hoàn thành xuất kho này?\")'>Hoàn Thành</a>";
+                            
+                            if ($row['trang_thai'] == 'Đang xuất' && hasPermission('execute_pxk')) {
+                                echo "<a href='execute.php?id=" . $row['ma_phieu_xuat_kho'] . "' class='btn-success' onclick='return confirm(\"Xác nhận hoàn thành xuất kho?\")'>Thực xuất</a>";
                             }
+                            
                             echo "</td>";
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='6' style='text-align: center;'>Không có phiếu xuất kho</td></tr>";
+                        echo "<tr><td colspan='7' style='text-align: center;'>Không có phiếu xuất kho</td></tr>";
                     }
                     ?>
                 </tbody>

@@ -6,7 +6,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     <div class="header-top">
         <h1>📊 Hệ Thống Quản Lý Đơn Hàng</h1>
         <div class="user-info">
-            <span>Xin chào: <?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
+            <span>Xin chào: <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Khách'); ?></span>
             <a href="/logout.php" class="btn-logout">Đăng Xuất</a>
         </div>
     </div>
@@ -89,5 +89,50 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         // const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO/n4rY8sNqJQUsgc4='); // Base64 cho sound ngắn
         // audio.play().catch(e => console.log('Could not play audio:', e));
     });
+    // 🔔 PO đã duyệt → kế toán lập hóa đơn
+   // 🔔 PO đã duyệt → kế toán lập hóa đơn (GREEN)
+    socket.on('po_approved', function(data) {
+        console.log('PO approved:', data);
+
+        const toast = $(`
+            <div style="
+                position:fixed;
+                top:20px;
+                right:20px;
+                z-index:9999;
+                padding:15px 18px;
+                border-radius:8px;
+                max-width:320px;
+                background:linear-gradient(135deg,#28a745,#5dd879);
+                color:#ffffff;
+                box-shadow:0 6px 16px rgba(0,0,0,0.25);
+                font-weight:500;
+                cursor:pointer;
+            ">
+                <strong style="font-size:16px;">✔ PO ĐÃ DUYỆT</strong><br>
+                <span style="display:block;margin-top:4px;">${data.message}</span>
+                <small style="display:block;margin-top:8px;">
+                    <a href="/hoa_don/create.php?po_id=${data.ma_phieu}"
+                    style="color:#ffffff;text-decoration:underline;font-weight:600;">
+                        Lập hóa đơn ngay →
+                    </a>
+                </small>
+            </div>
+        `);
+
+        $('body').append(toast);
+
+        // Auto hide sau 6s
+        setTimeout(() => {
+            toast.fadeOut(500, () => toast.remove());
+        }, 6000);
+
+        // Click để đóng nhanh
+        toast.on('click', () => {
+            toast.fadeOut(300, () => toast.remove());
+        });
+    });
+
+
 })();
 </script>

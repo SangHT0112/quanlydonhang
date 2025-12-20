@@ -1,7 +1,7 @@
 <?php
 include '../config.php';
 checkLogin();
-requirePermission('create_invoice');
+requirePermission('view_invoice');
 
 $id = $_GET['id'] ?? 0;
 $sql = "SELECT * FROM hoa_don WHERE ma_hoa_don = " . intval($id);

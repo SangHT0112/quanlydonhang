@@ -68,6 +68,13 @@ $result = $conn->query($sql);
                             echo "<td><span class='status-" . strtolower(str_replace(' ', '-', $row['trang_thai'])) . "'>" . $row['trang_thai'] . "</span></td>";
                             echo "<td>";
                             echo "<a href='detail.php?id=" . $row['ma_hoa_don'] . "' class='btn-info'>Xem</a>";
+
+                        
+                            echo "<a href='../phieu_xuat_kho/create.php?ma_hd=" . $row['ma_hoa_don'] . "'
+                                class='btn-primary'>
+                                Lập phiếu xuất kho
+                            </a>";
+                             
                             echo "</td>";
                             echo "</tr>";
                         }

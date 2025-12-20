@@ -9,9 +9,22 @@ checkLogin();
 requirePermission('create_invoice');
 
 // ===== LẤY PO =====
-$ma_po = $_GET['ma_po'] ?? '';
+$ma_po = isset($_GET['ma_po']) ? (int)$_GET['ma_po'] : 0;
 
-if (!$ma_po) {
+if ($ma_po <= 0) {
+    header('Location: ../phieu_dat_hang/list.php');
+    exit;
+}
+
+// ===== KIỂM TRA PO ĐÃ CÓ HÓA ĐƠN CHƯA =====
+$check_hd = $conn->prepare(
+    "SELECT 1 FROM hoa_don WHERE ma_phieu_dat_hang = ?"
+);
+$check_hd->bind_param("i", $ma_po);
+$check_hd->execute();
+
+if ($check_hd->get_result()->num_rows > 0) {
+    $_SESSION['error'] = 'PO này đã được lập hóa đơn';
     header('Location: ../phieu_dat_hang/list.php');
     exit;
 }
@@ -21,7 +34,8 @@ $sql_po = "
     SELECT p.*, k.ten_khach_hang
     FROM phieu_dat_hang p
     JOIN khach_hang k ON p.ma_khach_hang = k.ma_khach_hang
-    WHERE p.ma_phieu_dat_hang = ? AND p.trang_thai = 'Đã duyệt'
+    WHERE p.ma_phieu_dat_hang = ? 
+      AND p.trang_thai = 'Đã duyệt'
 ";
 $stmt_po = $conn->prepare($sql_po);
 $stmt_po->bind_param("i", $ma_po);
@@ -58,20 +72,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $errors = [];
 
-    // ===== KIỂM TRA TỒN KHO =====
+    // ===== KIỂM TRA TỒN KHO (CHỈ ĐỂ CẢNH BÁO) =====
     foreach ($chi_tiet as $item) {
-        $sql_ton = "
-            SELECT so_luong_ton 
-            FROM ton_kho 
-            WHERE ma_san_pham = ?
-        ";
-        $stmt_ton = $conn->prepare($sql_ton);
-        $stmt_ton->bind_param("i", $item['ma_san_pham']);
-        $stmt_ton->execute();
-        $ton = $stmt_ton->get_result()->fetch_assoc()['so_luong_ton'] ?? 0;
+        $stmt = $conn->prepare(
+            "SELECT so_luong_ton FROM ton_kho WHERE ma_san_pham = ?"
+        );
+        $stmt->bind_param("i", $item['ma_san_pham']);
+        $stmt->execute();
+        $ton = $stmt->get_result()->fetch_assoc()['so_luong_ton'] ?? 0;
 
         if ($ton < $item['so_luong']) {
-            $errors[] = "Sản phẩm {$item['ten_san_pham']} chỉ còn {$ton}, cần {$item['so_luong']}";
+            $errors[] = "Sản phẩm {$item['ten_san_pham']} chỉ còn {$ton}";
         }
     }
 
@@ -86,34 +97,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // ===== TẠO HÓA ĐƠN =====
-        $ngay_xuat_hd = date('Y-m-d');
-        $trang_thai = 'Chưa thanh toán';
-
         $sql_hd = "
             INSERT INTO hoa_don
             (ma_phieu_dat_hang, ngay_xuat_hd, tong_tien, trang_thai)
-            VALUES (?, ?, ?, ?)
+            VALUES (?, CURDATE(), ?, 'Chưa thanh toán')
         ";
         $stmt_hd = $conn->prepare($sql_hd);
-        $stmt_hd->bind_param(
-            "isds",
-            $ma_po,
-            $ngay_xuat_hd,
-            $po['tong_tien'],
-            $trang_thai
-        );
+        $stmt_hd->bind_param("id", $ma_po, $po['tong_tien']);
         $stmt_hd->execute();
 
         $ma_hoa_don = $conn->insert_id;
 
         // ===== CHI TIẾT HÓA ĐƠN =====
         foreach ($chi_tiet as $item) {
-            $sql_ct_hd = "
+            $stmt_ct_hd = $conn->prepare("
                 INSERT INTO chi_tiet_hoa_don
                 (ma_hoa_don, ma_san_pham, so_luong, don_gia, thanh_tien)
                 VALUES (?, ?, ?, ?, ?)
-            ";
-            $stmt_ct_hd = $conn->prepare($sql_ct_hd);
+            ");
             $stmt_ct_hd->bind_param(
                 "iiidd",
                 $ma_hoa_don,
@@ -125,22 +126,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_ct_hd->execute();
         }
 
-        // ===== TRỪ TỒN KHO =====
-        foreach ($chi_tiet as $item) {
-            $sql_tru = "
-                UPDATE ton_kho
-                SET so_luong_ton = so_luong_ton - ?,
-                    ngay_cap_nhat = NOW()
-                WHERE ma_san_pham = ?
-            ";
-            $stmt_tru = $conn->prepare($sql_tru);
-            $stmt_tru->bind_param(
-                "ii",
-                $item['so_luong'],
-                $item['ma_san_pham']
-            );
-            $stmt_tru->execute();
-        }
+        // ===== CẬP NHẬT TRẠNG THÁI PO =====
+        $stmt_up = $conn->prepare("
+            UPDATE phieu_dat_hang
+            SET trang_thai = 'Đã lập hóa đơn'
+            WHERE ma_phieu_dat_hang = ?
+        ");
+        $stmt_up->bind_param("i", $ma_po);
+        $stmt_up->execute();
 
         $conn->commit();
 
@@ -156,6 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -211,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form method="POST">
         <button class="btn-primary"
-                onclick="return confirm('Xác nhận tạo hóa đơn và trừ tồn kho?')">
+                onclick="return confirm('Xác nhận tạo hóa đơn')">
             Tạo hóa đơn
         </button>
         <a href="../phieu_dat_hang/list.php" class="btn-secondary">Quay lại</a>
