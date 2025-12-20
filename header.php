@@ -2,13 +2,12 @@
 $current_file = basename($_SERVER['PHP_SELF']);
 $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 ?>
-<header >
-    
+<header>
     <div class="header-inner">
         <div class="header-top">
             <h1>📊 Hệ Thống Quản Lý Đơn Hàng</h1>
             <div class="user-info">
-                <span>Xin chào: <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Guest'); ?></span>
+                <span>Xin chào: <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Guest'); ?></span>
                 <a href="/logout.php" class="btn-logout">Đăng Xuất</a>
             </div>
         </div>
@@ -120,14 +119,14 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
                 max-width:320px;
                 background:linear-gradient(135deg,#28a745,#5dd879);
                 color:#ffffff;
-box-shadow:0 6px 16px rgba(0,0,0,0.25);
+                box-shadow:0 6px 16px rgba(0,0,0,0.25);
                 font-weight:500;
                 cursor:pointer;
             ">
                 <strong style="font-size:16px;">✔ PO ĐÃ DUYỆT</strong><br>
                 <span style="display:block;margin-top:4px;">${data.message}</span>
                 <small style="display:block;margin-top:8px;">
-                    <a href="/hoa_don/create.php?po_id=${data.ma_phieu}"
+                    <a href="/hoa_don/create.php?ma_po=${data.ma_phieu}"
                     style="color:#ffffff;text-decoration:underline;font-weight:600;">
                         Lập hóa đơn ngay →
                     </a>

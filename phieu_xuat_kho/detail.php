@@ -1,35 +1,50 @@
 <?php
 include '../config.php';
 checkLogin();
-requirePermission('execute_pxk');
+requirePermission('view_inventory');  // Quyền xem chi tiết PXK (tương tự view_invoice)
 
 $id = $_GET['id'] ?? 0;
-$sql = "SELECT pxk.*, pbh.ma_phieu_dat_hang, pbh.ngay_lap, pbh.tong_tien
-        FROM phieu_xuat_kho pxk
-        JOIN phieu_ban_hang pbh ON pxk.ma_phieu_ban_hang = pbh.ma_phieu_ban_hang
-        WHERE pxk.ma_phieu_xuat_kho = " . intval($id);
-$result = $conn->query($sql);
+
+// Prepared statement cho an toàn
+$stmt = $conn->prepare("
+    SELECT pxk.*, pbh.ma_phieu_dat_hang, pbh.ngay_lap, pbh.tong_tien
+    FROM phieu_xuat_kho pxk
+    JOIN phieu_ban_hang pbh ON pxk.ma_phieu_ban_hang = pbh.ma_phieu_ban_hang
+    WHERE pxk.ma_phieu_xuat_kho = ?
+");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if ($result->num_rows == 0) {
+    $_SESSION['error'] = 'Phiếu xuất kho không tồn tại';
     header('Location: list.php');
     exit;
 }
 
 $pxk = $result->fetch_assoc();
 
-// Lấy chi tiết sản phẩm xuất kho
-$sql_ct = "SELECT ct.*, sp.ten_san_pham, sp.don_vi 
-          FROM chi_tiet_phieu_xuat_kho ct
-          JOIN san_pham sp ON ct.ma_san_pham = sp.ma_san_pham
-          WHERE ct.ma_phieu_xuat_kho = " . intval($id);
-$result_ct = $conn->query($sql_ct);
+// Lấy chi tiết sản phẩm xuất kho (prepared)
+$stmt_ct = $conn->prepare("
+    SELECT ct.*, sp.ten_san_pham, sp.don_vi 
+    FROM chi_tiet_phieu_xuat_kho ct
+    JOIN san_pham sp ON ct.ma_san_pham = sp.ma_san_pham
+    WHERE ct.ma_phieu_xuat_kho = ?
+");
+$stmt_ct->bind_param("i", $id);
+$stmt_ct->execute();
+$result_ct = $stmt_ct->get_result();
 
-// Lấy thông tin khách hàng từ phiếu đặt hàng
-$sql_po = "SELECT pdh.ma_khach_hang, kh.ten_khach_hang, kh.dien_thoai, kh.dia_chi
-           FROM phieu_dat_hang pdh
-           JOIN khach_hang kh ON pdh.ma_khach_hang = kh.ma_khach_hang
-           WHERE pdh.ma_phieu_dat_hang = " . intval($pxk['ma_phieu_dat_hang']);
-$result_po = $conn->query($sql_po);
+// Lấy thông tin khách hàng từ phiếu đặt hàng (prepared)
+$stmt_po = $conn->prepare("
+    SELECT pdh.ma_khach_hang, kh.ten_khach_hang, kh.dien_thoai, kh.dia_chi
+    FROM phieu_dat_hang pdh
+    JOIN khach_hang kh ON pdh.ma_khach_hang = kh.ma_khach_hang
+    WHERE pdh.ma_phieu_dat_hang = ?
+");
+$stmt_po->bind_param("i", $pxk['ma_phieu_dat_hang']);
+$stmt_po->execute();
+$result_po = $stmt_po->get_result();
 $khach_hang = $result_po->fetch_assoc();
 ?>
 <!DOCTYPE html>
@@ -47,11 +62,12 @@ $khach_hang = $result_po->fetch_assoc();
 
         <main>
             <?php 
-            $error = $_GET['error'] ?? '';
-            if ($error): 
+            if (!empty($_SESSION['error'])): 
             ?>
-                <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
+                <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['error']); ?></div>
+                <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
+
             <div class="detail-section">
                 <h3>Thông Tin Chung</h3>
                 <div class="detail-row">
@@ -103,7 +119,7 @@ $khach_hang = $result_po->fetch_assoc();
                                 $total += $row['thanh_tien'];
                                 echo "<tr>";
                                 echo "<td>" . htmlspecialchars($row['ten_san_pham']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['don_vi']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['don_vi'] ?? 'Cái') . "</td>";
                                 echo "<td style='text-align: right;'>" . $row['so_luong_xuat'] . "</td>";
                                 echo "<td style='text-align: right;'>" . formatMoney($row['thanh_tien']) . " VNĐ</td>";
                                 echo "</tr>";
