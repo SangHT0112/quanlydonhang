@@ -20,7 +20,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
                     <li><a href="/khach_hang/list.php" class="<?= strpos($current_path, '/khach_hang') !== false ? 'active' : '' ?>">Khách Hàng</a></li>
                 <?php endif; ?>
                 
-                <?php if (hasPermission('manage_users')): ?>
+                <?php if (hasPermission('create_po')): ?>
                     <li><a href="/san_pham/list.php" class="<?= strpos($current_path, '/san_pham') !== false ? 'active' : '' ?>">Sản Phẩm</a></li>
                 <?php endif; ?>
                 

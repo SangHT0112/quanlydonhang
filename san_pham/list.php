@@ -1,7 +1,6 @@
 <?php
 include '../config.php';
 checkLogin();
-requirePermission('manage_users');
 
 $search = $_GET['search'] ?? '';
 
