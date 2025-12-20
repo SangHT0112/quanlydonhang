@@ -974,3 +974,63 @@ main {
     transform: scale(1.1);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
+/* ==================== TRẠNG THÁI BADGES - SỬA LỖI MÀU TRẮNG, VIỀN XANH LÁ RÕ RÀNG ==================== */
+.table [class^="status-"] {
+    padding: 12px 26px !important;
+    border-radius: 9999px !important; /* Pill bo tròn hoàn toàn */
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    min-width: 135px !important;
+    text-align: center !important;
+    display: inline-block !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18) !important;
+    transition: all 0.35s ease !important;
+    border: 4px solid !important; /* Viền dày rõ ràng */
+}
+
+/* ĐÃ DUYỆT / HOÀN THÀNH / ĐÃ THANH TOÁN - XANH LÁ + VIỀN XANH LÁ ĐẬM */
+.table .status-đã-duyệt,
+.table .status-hoàn-thành,
+.table .status-đã-thanh-toán {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0) !important;
+    color: #064e3b !important;
+    border-color: #10b981 !important; /* Viền xanh lá đậm - BÂY GIỜ HIỂN THỊ RÕ */
+}
+
+/* CHỜ DUYỆT - ĐỎ + VIỀN ĐỎ + NHẤP NHÁY */
+.table .status-chờ-duyệt {
+    background: linear-gradient(135deg, #fee2e2, #fecaca) !important;
+    color: #7f1d1d !important;
+    border-color: #ef4444 !important; /* Viền đỏ đậm */
+    animation: pulse-red 2s infinite !important;
+}
+
+/* HỦY / CHƯA THANH TOÁN - ĐỎ */
+.table .status-hủy,
+.table .status-chưa-thanh-toán {
+    background: linear-gradient(135deg, #fee2e2, #fecaca) !important;
+    color: #7f1d1d !important;
+    border-color: #ef4444 !important;
+}
+
+/* CÔNG NỢ - XANH DƯƠNG */
+.table .status-công-nợ {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important;
+    color: #1e40af !important;
+    border-color: #3b82f6 !important;
+}
+
+/* Hiệu ứng nhấp nháy cho "Chờ duyệt" */
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Hover - phóng to mạnh hơn */
+.table [class^="status-"]:hover {
+    transform: scale(1.15) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3) !important;
+}
