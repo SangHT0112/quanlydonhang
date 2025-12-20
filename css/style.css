@@ -531,3 +531,446 @@ footer {
     border-radius: 5px;
     font-weight: 600;
 }
+/* Header full width */
+header {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 0; /* padding dọc */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Nội dung bên trong header vẫn căn giữa, đẹp mắt */
+.header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.navbar {
+    background-color: rgba(0,0,0,0.1);
+    padding: 10px 0;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    justify-content: center; /* căn giữa menu nếu muốn, hoặc để left */
+}
+/* Header Improvements */
+.header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.header-top h1 {
+    font-size: 26px;
+    font-weight: 600;
+}
+
+/* Navbar Menu - Đẹp hơn */
+.navbar ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Căn giữa các mục menu */
+    gap: 8px; /* Khoảng cách đều giữa các mục */
+    padding: 0;
+    margin: 0;
+}
+
+.navbar li {
+    margin: 0;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.navbar a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.navbar a.active {
+    background-color: #ffffff;
+    color: #667eea !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Toast Notify Style */
+.global-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    max-width: 320px;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    animation: slideIn 0.4s ease;
+}
+
+.global-toast a {
+    color: #0d6efd;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.toast-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #155724;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .header-top h1 {
+        font-size: 22px;
+    }
+    
+    .navbar ul {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .navbar a {
+        width: 80%;
+        text-align: center;
+        padding: 12px;
+    }
+    
+    .global-toast {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+}
+/* ==================== MÀU SẮC SINH ĐỘNG - DASHBOARD ==================== */
+
+/* Nền main nhẹ nhàng, tươi sáng */
+main {
+    flex: 1;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%); /* Nền gradient nhẹ tím nhạt */
+    min-height: 100vh;
+}
+
+.dashboard h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #4338ca; /* Màu tím đậm Indigo */
+    margin-bottom: 32px;
+    position: relative;
+    padding-bottom: 14px;
+}
+
+.dashboard h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100px;
+    height: 5px;
+    background: linear-gradient(90deg, #8b5cf6, #ec4899); /* Gradient tím → hồng */
+    border-radius: 10px;
+}
+
+/* ==================== STATS CARDS - SINH ĐỘNG HƠN ==================== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+    margin-bottom: 50px;
+}
+
+.stat-card {
+    background: white;
+    padding: 32px 28px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    border: none;
+}
+
+/* Thanh màu dọc bên trái - mỗi card một màu riêng */
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: var(--card-color, #8b5cf6);
+    transition: width 0.4s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+}
+
+.stat-card:hover::before {
+    width: 12px;
+}
+
+/* Gán màu riêng cho từng card */
+.stat-card:nth-child(1) { --card-color: #8b5cf6; } /* Khách hàng - Tím */
+.stat-card:nth-child(2) { --card-color: #3b82f6; } /* Sản phẩm - Xanh dương */
+.stat-card:nth-child(3) { --card-color: #f59e0b; } /* Đơn chờ duyệt - Cam */
+.stat-card:nth-child(4) { --card-color: #ef4444; } /* Hóa đơn chưa TT - Đỏ */
+.stat-card:nth-child(5) { --card-color: #10b981; } /* Doanh thu - Xanh lá */
+.stat-card:nth-child(6) { --card-color: #ec4899; } /* Hành động nhanh - Hồng */
+
+.stat-card h3 {
+    color: #6366f1;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+
+.stat-number {
+    font-size: 40px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--card-color, #8b5cf6), #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 18px 0;
+    line-height: 1.1;
+}
+
+.stat-card a {
+    color: var(--card-color, #8b5cf6);
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.stat-card a:hover {
+    gap: 14px;
+    color: #7c3aed;
+}
+
+.stat-card a::after {
+    content: '→';
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Card Hành Động Nhanh - Nút nổi bật */
+.stat-card:last-child .btn-primary {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    padding: 14px 24px;
+    font-size: 16px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+    transition: all 0.3s;
+}
+
+.stat-card:last-child .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(236, 72, 153, 0.4);
+}
+
+/* ==================== BẢNG ĐƠN HÀNG GẦN ĐÂY ==================== */
+.recent-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #e0e7ff;
+}
+
+.recent-section h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #4338ca;
+    padding: 28px;
+    margin: 0;
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    border-bottom: 1px solid #c7d2fe;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 18px 20px;
+}
+
+.table tbody tr:hover {
+    background: linear-gradient(to right, #f3f4ff, #fbfbff);
+}
+
+.table a {
+    background: #8b5cf6;
+    color: white !important;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.table a:hover {
+    background: #7c3aed;
+    transform: scale(1.05);
+}
+
+/* Status badges - màu sắc sống động hơn */
+.table [class^="status-"] {
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.table .status-chờ-duyệt {
+    background: linear-gradient(135deg, #fff7ed, #fed7aa);
+    color: #c2410c;
+}
+
+.table .status-đã-duyệt,
+.table .status-hoàn-thành,
+.table .status-đã-thanh-toán {
+    background: linear-gradient(135deg, #f0fdf4, #bbf7d0);
+    color: #166534;
+}
+
+.table .status-hủy,
+.table .status-chưa-thanh-toán {
+    background: linear-gradient(135deg, #fef2f2, #fecaca);
+    color: #dc2626;
+}
+
+.table .status-công-nợ {
+    background: linear-gradient(135deg, #eff6ff, #bfdbfe);
+    color: #1d4ed8;
+}
+/* ==================== TRẠNG THÁI BADGES - BO GÓC CÓ MÀU RÕ RÀNG ==================== */
+.table [class^="status-"] {
+    padding: 10px 20px;
+    border-radius: 9999px; /* Bo tròn hoàn toàn (pill) */
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    min-width: 115px;
+    text-align: center;
+    display: inline-block;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: 3px solid; /* Bật border rõ ràng */
+}
+
+/* CHỜ DUYỆT - ĐỎ NỔI BẬT + VIỀN ĐỎ ĐẬM */
+.table .status-chờ-duyệt {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #7f1d1d;
+    border-color: #ef4444; /* Viền đỏ đậm */
+    animation: pulse-red 2s infinite;
+}
+
+/* ĐÃ DUYỆT / HOÀN THÀNH / ĐÃ THANH TOÁN - XANH LÁ + VIỀN XANH */
+.table .status-đã-duyệt,
+.table .status-hoàn-thành,
+.table .status-đã-thanh-toán {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #064e3b;
+    border-color: #10b981; /* Viền xanh lá đậm */
+}
+
+/* HỦY / CHƯA THANH TOÁN - ĐỎ + VIỀN ĐỎ */
+.table .status-hủy,
+.table .status-chưa-thanh-toán {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #7f1d1d;
+    border-color: #ef4444;
+}
+
+/* CÔNG NỢ - XANH DƯƠNG + VIỀN XANH */
+.table .status-công-nợ {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e40af;
+    border-color: #3b82f6;
+}
+
+/* Hiệu ứng nhấp nháy cho "Chờ duyệt" - thu hút chú ý */
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+/* Hover - phóng to + bóng đậm hơn */
+.table [class^="status-"]:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}

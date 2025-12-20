@@ -11,9 +11,10 @@ checkLogin();
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    
+           <?= include 'header.php'; ?>
     <div class="container">
 
-           <?= include 'header.php'; ?>
         <main>
             <div class="dashboard">
                 <h2>Bảng Điều Khiển</h2>

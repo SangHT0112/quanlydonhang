@@ -24,8 +24,9 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
+    <?php include '../header.php'; ?>
     <div class="container">
-        <?php include '../header.php'; ?>
+        
         <h1>Danh Sách Sản Phẩm</h1>
         <main>
             <div class="filter-section">
