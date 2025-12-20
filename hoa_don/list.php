@@ -70,10 +70,21 @@ $result = $conn->query($sql);
                             echo "<a href='detail.php?id=" . $row['ma_hoa_don'] . "' class='btn-info'>Xem</a>";
 
                         
-                            echo "<a href='../phieu_xuat_kho/create.php?ma_hd=" . $row['ma_hoa_don'] . "'
-                                class='btn-primary'>
-                                Lập phiếu xuất kho
-                            </a>";
+                            if (hasPermission('create_pxk')) {
+                                echo "<a href='../phieu_xuat_kho/create.php?ma_hd=" . $row['ma_hoa_don'] . "'
+                                    class='btn-primary'>
+                                    Lập phiếu xuất kho
+                                </a>";
+                            }
+
+
+                            if (hasPermission('create_return')) {
+                                echo "<a href='../tra_hang/create.php?ma_hd=" . $row['ma_hoa_don'] . "'
+                                    class='btn-warning'>
+                                    Trả hàng
+                                </a>";
+                            }
+
                              
                             echo "</td>";
                             echo "</tr>";

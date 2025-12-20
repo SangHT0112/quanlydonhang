@@ -45,10 +45,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
                 <?php if (hasPermission('view_po')): ?>
                     <li><a href="/phieu_dat_hang/list.php" class="<?= strpos($current_path, '/phieu_dat_hang') !== false ? 'active' : '' ?>">Phiếu Đặt Hàng</a></li>
                 <?php endif; ?>
-                
-                <?php if (hasPermission('create_bh')): ?>
-                    <li><a href="/phieu_ban_hang/list.php" class="<?= strpos($current_path, '/phieu_ban_hang') !== false ? 'active' : '' ?>">Phiếu Bán Hàng</a></li>
-                <?php endif; ?>
+            
                 
                 <?php if (hasPermission('execute_pxk') || hasRole('kho')): ?>
                     <li><a href="/phieu_xuat_kho/list.php" class="<?= strpos($current_path, '/phieu_xuat_kho') !== false ? 'active' : '' ?>">Phiếu Xuất Kho</a></li>

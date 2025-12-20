@@ -124,6 +124,27 @@ $result = $conn->query($sql);
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
         }
 
+        .modal-body .info-item {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #6366f1;
+        }
+
+        .modal-body .info-item label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .modal-body .info-item span {
+            color: #1f2937;
+            font-size: 16px;
+        }
+
         .modal-footer {
             padding: 20px 30px;
             background: #f8fafc;
@@ -184,7 +205,14 @@ $result = $conn->query($sql);
                 <tbody>
                     <?php if ($result->num_rows > 0): ?>
                         <?php while($row = $result->fetch_assoc()): ?>
-                            <tr>
+                            <tr class="customer-row"
+                                data-id="<?php echo $row['ma_khach_hang']; ?>"
+                                data-ten="<?php echo htmlspecialchars($row['ten_khach_hang']); ?>"
+                                data-dienthoai="<?php echo htmlspecialchars($row['dien_thoai'] ?? ''); ?>"
+                                data-email="<?php echo htmlspecialchars($row['email'] ?? ''); ?>"
+                                data-diachi="<?php echo htmlspecialchars($row['dia_chi'] ?? ''); ?>"
+                                data-trangthai="<?php echo htmlspecialchars($row['trang_thai']); ?>"
+                                data-ngaytao="<?php echo date('d/m/Y H:i:s', strtotime($row['ngay_tao'])); ?>">
                                 <td><strong><?php echo htmlspecialchars($row['ten_khach_hang']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($row['dien_thoai'] ?? ''); ?></td>
                                 <td><?php echo htmlspecialchars($row['email'] ?? ''); ?></td>
@@ -259,11 +287,80 @@ $result = $conn->query($sql);
         </div>
     </div>
 
+    <!-- Modal Xem Thông Tin Khách Hàng -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal">
+            <div class="modal-header">Thông Tin Khách Hàng</div>
+            <div class="modal-body">
+                <div id="viewContent">
+                    <!-- Nội dung sẽ được điền bằng JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="closeViewModal">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const modal = document.getElementById('editModal');
+        const viewModal = document.getElementById('viewModal');
         const alertBox = document.getElementById('modalAlert');
+        const viewContent = document.getElementById('viewContent');
 
-        // Mở modal
+        // Mở modal xem thông tin khi click vào hàng (trừ nút hành động)
+        document.querySelectorAll('.customer-row').forEach(row => {
+            row.addEventListener('click', (e) => {
+                // Bỏ qua nếu click vào nút Sửa hoặc liên kết Xóa
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('BUTTON') || e.target.closest('A')) {
+                    return;
+                }
+
+                const id = row.dataset.id;
+                const ten = row.dataset.ten;
+                const dienThoai = row.dataset.dienthoai;
+                const email = row.dataset.email;
+                const diaChi = row.dataset.diachi;
+                const trangThai = row.dataset.trangthai;
+                const ngayTao = row.dataset.ngaytao;
+
+                const html = `
+                    <div class="info-item">
+                        <label>Mã Khách Hàng</label>
+                        <span>${id}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Tên Khách Hàng</label>
+                        <span>${ten}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Điện Thoại</label>
+                        <span>${dienThoai || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Email</label>
+                        <span>${email || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Địa Chỉ</label>
+                        <span>${diaChi || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Trạng Thái</label>
+                        <span class="status-${trangThai.toLowerCase().replace(' ', '-')}">${trangThai}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Ngày Tạo</label>
+                        <span>${ngayTao}</span>
+                    </div>
+                `;
+
+                viewContent.innerHTML = html;
+                viewModal.style.display = 'flex';
+            });
+        });
+
+        // Mở modal sửa
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editId').value = btn.dataset.id;
@@ -278,14 +375,23 @@ $result = $conn->query($sql);
             });
         });
 
-        // Đóng modal
+        // Đóng modal sửa
         document.getElementById('closeModal').addEventListener('click', () => {
             modal.style.display = 'none';
         });
 
-        // Click ngoài modal để đóng
+        // Đóng modal xem
+        document.getElementById('closeViewModal').addEventListener('click', () => {
+            viewModal.style.display = 'none';
+        });
+
+        // Click ngoài modal để đóng (cả hai modal)
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.style.display = 'none';
+        });
+
+        viewModal.addEventListener('click', (e) => {
+            if (e.target === viewModal) viewModal.style.display = 'none';
         });
 
         // Lưu sửa
