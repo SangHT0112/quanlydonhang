@@ -1145,3 +1145,119 @@ main {
         font-size: 20px;
     }
 }
+
+/* ==================== TÌM KIẾM GỌN NHẸ & CHUYÊN NGHIỆP ==================== */
+.filter-section {
+    margin-bottom: 30px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.compact-search-form {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.compact-search-input-group {
+    position: relative;
+    flex: 1;
+    min-width: 280px;
+    max-width: 600px;
+}
+
+.compact-search-input {
+    width: 100%;
+    padding: 14px 20px;
+    padding-right: 56px; /* chỗ cho icon kính lúp */
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 16px;
+    background: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.compact-search-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.compact-search-input::placeholder {
+    color: #94a3b8;
+}
+
+.compact-search-btn {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.compact-search-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.compact-search-btn svg {
+    stroke: white;
+}
+
+.compact-clear-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.compact-clear-filter:hover {
+    background: #e2e8f0;
+    color: #475569;
+    transform: translateY(-1px);
+}
+
+.compact-clear-filter svg {
+    stroke: #64748b;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .compact-search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .compact-search-input-group {
+        min-width: auto;
+        max-width: none;
+    }
+
+    .compact-clear-filter {
+        align-self: flex-end;
+        margin-top: 10px;
+    }
+}
