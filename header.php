@@ -2,13 +2,31 @@
 $current_file = basename($_SERVER['PHP_SELF']);
 $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 ?>
+
+
 <header>
     <div class="header-inner">
-        <div class="header-top">
+         <div class="header-top">
             <h1>📊 Hệ Thống Quản Lý Đơn Hàng</h1>
+            
             <div class="user-info">
-                <span>Xin chào: <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Guest'); ?></span>
-                <a href="/logout.php" class="btn-logout">Đăng Xuất</a>
+                <!-- Tên người dùng nổi bật -->
+                <div class="user-greeting">
+                    <i class="fas fa-user-circle user-icon"></i>
+                    <div class="user-text">
+                        <span>Xin chào</span>
+                        <strong class="username">
+                         <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Guest'); ?></span>
+                           
+                        </strong>
+                    </div>
+                </div>
+
+                <!-- Nút Đăng Xuất siêu đẹp -->
+                <a href="/logout.php" class="btn-logout-premium">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng Xuất</span>
+                </a>
             </div>
         </div>
 
@@ -59,7 +77,120 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         </nav>
     </div>
 </header>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<!-- CSS NÂNG CẤP CHO USER INFO & BTN LOGOUT -->
+<style>
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* Tên người dùng - Nổi bật, sang trọng */
+.user-greeting {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    padding: 10px 18px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.user-greeting:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.user-icon {
+    font-size: 32px;
+    color: #ffffff;
+    opacity: 0.9;
+}
+
+.user-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
+.user-text span {
+    font-size: 13px;
+    opacity: 0.8;
+    color: #f0f0f0;
+}
+
+.username {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Nút Đăng Xuất - Siêu đẹp, hiện đại */
+.btn-logout-premium {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white !important;
+    padding: 12px 22px;
+    border-radius: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    transition: all 0.35s ease;
+    border: none;
+}
+
+.btn-logout-premium i {
+    font-size: 18px;
+}
+
+.btn-logout-premium:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(220, 53, 69, 0.5);
+}
+
+.btn-logout-premium:active {
+    transform: translateY(-1px);
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .user-greeting {
+        padding: 12px 20px;
+    }
+    
+    .username {
+        font-size: 20px;
+    }
+}
+</style>
 <!-- THÊM MỚI: Global Socket.IO cho notify real-time (chỉ kế toán, ở tất cả trang có header) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> <!-- Global jQuery nếu chưa có -->
 <script src="http://localhost:4000/socket.io/socket.io.js"></script>
