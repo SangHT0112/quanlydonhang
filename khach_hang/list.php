@@ -6,8 +6,36 @@ requirePermission('manage_users');
 $search = $_GET['search'] ?? '';
 $trang_thai = $_GET['trang_thai'] ?? '';
 
-$sql = "SELECT * FROM khach_hang WHERE 1=1";
+// Xử lý AJAX update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_customer') {
+    header('Content-Type: application/json');
+    $id = intval($_POST['ma_khach_hang']);
+    $ten_kh = trim($_POST['ten_khach_hang']);
+    $dia_chi = trim($_POST['dia_chi'] ?? '');
+    $dien_thoai = trim($_POST['dien_thoai'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $trang_thai = $_POST['trang_thai'];
 
+    if (empty($ten_kh)) {
+        echo json_encode(['success' => false, 'message' => 'Vui lòng nhập tên khách hàng']);
+        exit;
+    }
+
+    $sql = "UPDATE khach_hang SET ten_khach_hang = ?, dia_chi = ?, dien_thoai = ?, email = ?, trang_thai = ? WHERE ma_khach_hang = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssssi", $ten_kh, $dia_chi, $dien_thoai, $email, $trang_thai, $id);
+    
+    if ($stmt->execute()) {
+        logActivity('UPDATE_CUSTOMER', 'Cập nhật khách hàng: ' . $ten_kh);
+        echo json_encode(['success' => true, 'message' => 'Cập nhật thành công!']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Lỗi cập nhật: ' . $stmt->error]);
+    }
+    exit;
+}
+
+// Lấy danh sách khách hàng
+$sql = "SELECT * FROM khach_hang WHERE 1=1";
 if ($search) {
     $search = $conn->real_escape_string($search);
     $sql .= " AND (ten_khach_hang LIKE '%$search%' OR dien_thoai LIKE '%$search%' OR email LIKE '%$search%')";
@@ -16,7 +44,6 @@ if ($trang_thai) {
     $trang_thai = $conn->real_escape_string($trang_thai);
     $sql .= " AND trang_thai = '$trang_thai'";
 }
-
 $sql .= " ORDER BY ngay_tao DESC";
 $result = $conn->query($sql);
 ?>
@@ -27,286 +54,112 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh Sách Khách Hàng</title>
     <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        /* Giữ nguyên CSS bạn đã có, chỉ thêm phần modal */
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Modal Content */
+        .modal {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 24px;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .modal-body input,
+        .modal-body textarea,
+        .modal-body select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .modal-body input:focus,
+        .modal-body textarea:focus,
+        .modal-body select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            background: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
 </head>
-<style>
-    /* ==================== LIST VIEW KHÁCH HÀNG - CHUYÊN NGHIỆP & FULL WIDTH ==================== */
-
-/* Main content full height & đẹp hơn */
-main {
-    flex: 1;
-    padding: 40px 20px;
-    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
-    min-height: 100vh;
-}
-
-/* Tiêu đề trang */
-main > h1 {
-    font-size: 32px;
-    font-weight: 800;
-    color: #4338ca;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-main > h1 + p {
-    text-align: center;
-    color: #64748b;
-    margin-bottom: 40px;
-    font-size: 18px;
-}
-
-/* Filter Section - Card đẹp */
-.filter-section {
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    margin-bottom: 30px;
-    border: 1px solid #e0e7ff;
-}
-
-.filter-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    align-items: end;
-}
-
-.filter-form input,
-.filter-form select {
-    padding: 14px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 16px;
-    transition: all 0.3s;
-}
-
-.filter-form input:focus,
-.filter-form select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-}
-
-.filter-form button,
-.filter-form a {
-    padding: 14px 24px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 16px;
-    text-align: center;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-/* Actions Section - Nút thêm mới nổi bật */
-.actions-section {
-    text-align: right;
-    margin-bottom: 30px;
-}
-
-.actions-section .btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    padding: 16px 32px;
-    font-size: 18px;
-    border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.actions-section .btn-primary:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-}
-
-/* Table List View - Siêu chuyên nghiệp */
-.table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e7ff;
-}
-
-.table thead {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-}
-
-.table th {
-    color: white;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 14px;
-    padding: 20px 24px;
-    text-align: left;
-}
-
-.table tbody tr {
-    transition: all 0.3s ease;
-}
-
-.table tbody tr:hover {
-    background: linear-gradient(to right, #f8f9ff, #f0f4ff);
-    transform: scale(1.01);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
-}
-
-.table td {
-    padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-}
-
-/* Tên khách hàng nổi bật */
-.table td:first-child strong {
-    font-size: 18px;
-    color: #1e293b;
-}
-
-/* Trạng thái khách hàng - Hoạt động (xanh) / Ngừng (đỏ) */
-.table .status-hoạt-động {
-    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-    color: #065f46;
-    border: 3px solid #10b981;
-    padding: 10px 20px;
-    border-radius: 9999px;
-    font-weight: 700;
-    text-transform: uppercase;
-    min-width: 130px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
-}
-
-.table .status-ngừng-hoạt-động {
-    background: linear-gradient(135deg, #fee2e2, #fecaca);
-    color: #7f1d1d;
-    border: 3px solid #ef4444;
-    padding: 10px 20px;
-    border-radius: 9999px;
-    font-weight: 700;
-    text-transform: uppercase;
-    min-width: 130px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
-}
-
-/* Nút hành động - Sửa (vàng) / Xóa (đỏ) riêng biệt */
-.table .btn-warning {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    margin-right: 10px;
-    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
-    transition: all 0.3s;
-}
-
-.table .btn-warning:hover {
-    background: #d97706;
-    transform: translateY(-2px);
-}
-
-.table .btn-danger {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-    transition: all 0.3s;
-}
-
-.table .btn-danger:hover {
-    background: #b91c1c;
-    transform: translateY(-2px);
-}
-
-/* Empty state */
-.table tbody td[colspan] {
-    text-align: center;
-    padding: 60px 20px;
-    color: #94a3b8;
-    font-size: 18px;
-    font-style: italic;
-}
-
-/* Responsive - Mobile: bảng thành card */
-@media (max-width: 768px) {
-    .filter-form {
-        grid-template-columns: 1fr;
-    }
-
-    .table thead {
-        display: none;
-    }
-
-    .table tbody tr {
-        display: block;
-        margin-bottom: 20px;
-        padding: 20px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        border: 1px solid #e0e7ff;
-    }
-
-    .table td {
-        display: block;
-        text-align: right;
-        padding: 12px 0;
-        border: none;
-        position: relative;
-    }
-
-    .table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 0;
-        font-weight: 600;
-        color: #6366f1;
-        text-transform: uppercase;
-        font-size: 13px;
-    }
-
-    .table td:last-child {
-        text-align: center;
-    }
-}
-
-/* Thêm data-label cho mobile */
-.table th:nth-child(1), .table td:nth-child(1) { data-label: "Tên KH"; }
-.table th:nth-child(2), .table td:nth-child(2) { data-label: "Điện thoại"; }
-.table th:nth-child(3), .table td:nth-child(3) { data-label: "Email"; }
-.table th:nth-child(4), .table td:nth-child(4) { data-label: "Địa chỉ"; }
-.table th:nth-child(5), .table td:nth-child(5) { data-label: "Trạng thái"; }
-.table th:nth-child(6), .table td:nth-child(6) { data-label: "Ngày tạo"; }
-.table th:nth-child(7), .table td:nth-child(7) { data-label: "Hành động"; }
-</style>
 <body>
-     <?php include '../header.php'; ?>
+    <?php include '../header.php'; ?>
     <div class="container">
-       
         <h1>Danh Sách Khách Hàng</h1>
-           
 
         <main>
             <div class="filter-section">
                 <form method="GET" class="filter-form">
                     <input type="text" name="search" placeholder="Tìm kiếm tên, SĐT, email..." value="<?php echo htmlspecialchars($search); ?>">
-                    
                     <select name="trang_thai">
                         <option value="">-- Tất cả trạng thái --</option>
                         <option value="Hoạt động" <?php if ($trang_thai == 'Hoạt động') echo 'selected'; ?>>Hoạt động</option>
                         <option value="Ngừng hoạt động" <?php if ($trang_thai == 'Ngừng hoạt động') echo 'selected'; ?>>Ngừng hoạt động</option>
                     </select>
-
                     <button type="submit" class="btn-primary">Tìm Kiếm</button>
                     <a href="list.php" class="btn-secondary">Xóa Lọc</a>
                 </form>
@@ -329,29 +182,134 @@ main > h1 + p {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php
-                    if ($result->num_rows > 0) {
-                        while($row = $result->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td><strong>" . htmlspecialchars($row['ten_khach_hang']) . "</strong></td>";
-                            echo "<td>" . htmlspecialchars($row['dien_thoai'] ?? '') . "</td>";
-                            echo "<td>" . htmlspecialchars($row['email'] ?? '') . "</td>";
-                            echo "<td>" . htmlspecialchars($row['dia_chi'] ?? '') . "</td>";
-                            echo "<td><span class='status-" . strtolower(str_replace(' ', '-', $row['trang_thai'])) . "'>" . $row['trang_thai'] . "</span></td>";
-                            echo "<td>" . date('d/m/Y', strtotime($row['ngay_tao'])) . "</td>";
-                            echo "<td>";
-                            echo "<a href='edit.php?id=" . $row['ma_khach_hang'] . "' class='btn-warning'>Sửa</a> ";
-                            echo "<a href='delete.php?id=" . $row['ma_khach_hang'] . "' class='btn-danger' onclick='return confirm(\"Bạn chắc chắn muốn xóa?\")'>Xóa</a>";
-                            echo "</td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='7' style='text-align: center;'>Không có khách hàng</td></tr>";
-                    }
-                    ?>
+                    <?php if ($result->num_rows > 0): ?>
+                        <?php while($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($row['ten_khach_hang']); ?></strong></td>
+                                <td><?php echo htmlspecialchars($row['dien_thoai'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($row['email'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($row['dia_chi'] ?? ''); ?></td>
+                                <td><span class="status-<?php echo strtolower(str_replace(' ', '-', $row['trang_thai'])); ?>">
+                                    <?php echo $row['trang_thai']; ?>
+                                </span></td>
+                                <td><?php echo date('d/m/Y', strtotime($row['ngay_tao'])); ?></td>
+                                <td>
+                                    <button class="btn-warning edit-btn" 
+                                            data-id="<?php echo $row['ma_khach_hang']; ?>"
+                                            data-ten="<?php echo htmlspecialchars($row['ten_khach_hang']); ?>"
+                                            data-dienthoai="<?php echo htmlspecialchars($row['dien_thoai'] ?? ''); ?>"
+                                            data-email="<?php echo htmlspecialchars($row['email'] ?? ''); ?>"
+                                            data-diachi="<?php echo htmlspecialchars($row['dia_chi'] ?? ''); ?>"
+                                            data-trangthai="<?php echo htmlspecialchars($row['trang_thai']); ?>">
+                                        Sửa
+                                    </button>
+                                    <a href="delete.php?id=<?php echo $row['ma_khach_hang']; ?>" 
+                                       class="btn-danger" 
+                                       onclick="return confirm('Bạn chắc chắn muốn xóa?')">Xóa</a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr><td colspan="7">Không có khách hàng</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </main>
     </div>
+
+    <!-- Modal Sửa Khách Hàng -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">Sửa Thông Tin Khách Hàng</div>
+            <div class="modal-body">
+                <div id="modalAlert"></div>
+                <form id="editForm">
+                    <input type="hidden" name="ma_khach_hang" id="editId">
+                    <input type="hidden" name="action" value="update_customer">
+
+                    <div class="form-group">
+                        <label>Tên Khách Hàng</label>
+                        <input type="text" name="ten_khach_hang" id="editTen" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Điện Thoại</label>
+                        <input type="tel" name="dien_thoai" id="editDienThoai">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" id="editEmail">
+                    </div>
+                    <div class="form-group">
+                        <label>Địa Chỉ</label>
+                        <textarea name="dia_chi" id="editDiaChi" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng Thái</label>
+                        <select name="trang_thai" id="editTrangThai">
+                            <option value="Hoạt động">Hoạt động</option>
+                            <option value="Ngừng hoạt động">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="closeModal">Hủy</button>
+                <button type="button" class="btn-primary" id="saveEdit">Cập Nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('editModal');
+        const alertBox = document.getElementById('modalAlert');
+
+        // Mở modal
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('editId').value = btn.dataset.id;
+                document.getElementById('editTen').value = btn.dataset.ten;
+                document.getElementById('editDienThoai').value = btn.dataset.dienthoai;
+                document.getElementById('editEmail').value = btn.dataset.email;
+                document.getElementById('editDiaChi').value = btn.dataset.diachi;
+                document.getElementById('editTrangThai').value = btn.dataset.trangthai;
+
+                alertBox.innerHTML = '';
+                modal.style.display = 'flex';
+            });
+        });
+
+        // Đóng modal
+        document.getElementById('closeModal').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Click ngoài modal để đóng
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+
+        // Lưu sửa
+        document.getElementById('saveEdit').addEventListener('click', async () => {
+            const formData = new FormData(document.getElementById('editForm'));
+
+            try {
+                const response = await fetch('', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alertBox.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    alertBox.innerHTML = `<div class="alert alert-error">${result.message}</div>`;
+                }
+            } catch (err) {
+                alertBox.innerHTML = `<div class="alert alert-error">Lỗi kết nối</div>`;
+            }
+        });
+    </script>
 </body>
 </html>
