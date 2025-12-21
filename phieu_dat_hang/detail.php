@@ -1,3 +1,4 @@
+<!-- phieu_dat_hang/detail.php -->
 <?php
 include '../config.php';
 checkLogin();

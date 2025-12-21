@@ -1,7 +1,6 @@
 <?php
 include '../config.php';
 checkLogin();
-requirePermission('create_return');
 
 $id = $_GET['id'] ?? 0;
 $sql = "SELECT * FROM tra_hang WHERE ma_tra_hang = " . intval($id);
@@ -40,6 +39,16 @@ $hoa_don = $result_hd->fetch_assoc();
         <h1>Chi Tiết Trả Hàng #<?php echo $id; ?></h1>
 
         <main>
+            <?php
+            if (!empty($_SESSION['success'])) {
+                echo "<div class='alert alert-success'>{$_SESSION['success']}</div>";
+                unset($_SESSION['success']);
+            }
+            if (!empty($_SESSION['error'])) {
+                echo "<div class='alert alert-danger'>{$_SESSION['error']}</div>";
+                unset($_SESSION['error']);
+            }
+            ?>
             <div class="detail-section">
                 <h3>Thông Tin Trả Hàng</h3>
                 <div class="detail-row">
@@ -102,6 +111,28 @@ $hoa_don = $result_hd->fetch_assoc();
             </div>
 
             <div class="form-actions">
+                <?php if ($tra_hang['trang_thai'] === 'Yêu cầu' && (hasPermission('approve_return') || hasPermission('approve_return') || hasRole('ketoan'))): ?>
+                    <form method="POST" action="approve.php" style="display:inline-block; margin-right:8px;">
+                        <input type="hidden" name="id" value="<?php echo $tra_hang['ma_tra_hang']; ?>">
+                        <input type="hidden" name="action" value="approve">
+                        <input type="text" name="note" placeholder="Ghi chú (tùy chọn)">
+                        <button class="btn-primary" type="submit" onclick="return confirm('Duyệt yêu cầu trả hàng?')">Duyệt (Kế toán)</button>
+                    </form>
+                    <form method="POST" action="approve.php" style="display:inline-block;">
+                        <input type="hidden" name="id" value="<?php echo $tra_hang['ma_tra_hang']; ?>">
+                        <input type="hidden" name="action" value="reject">
+                        <input type="text" name="note" placeholder="Lý do từ chối">
+                        <button class="btn-danger" type="submit" onclick="return confirm('Từ chối yêu cầu trả hàng?')">Từ chối</button>
+                    </form>
+                <?php endif; ?>
+
+                <?php if ($tra_hang['trang_thai'] === 'Kế toán duyệt' && (hasPermission('create_picklist') || hasPermission('execute_pxk') || hasRole('kho'))): ?>
+                    <form method="POST" action="process.php" style="display:inline-block; margin-left:8px;">
+                        <input type="hidden" name="id" value="<?php echo $tra_hang['ma_tra_hang']; ?>">
+                        <button class="btn-primary" type="submit" onclick="return confirm('Xác nhận kho nhận hàng và cập nhật tồn kho?')">Hoàn thành (Kho)</button>
+                    </form>
+                <?php endif; ?>
+
                 <a href="list.php" class="btn-secondary">Quay Lại Danh Sách</a>
             </div>
         </main>

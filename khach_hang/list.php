@@ -169,6 +169,7 @@ $result = $conn->query($sql);
 </head>
 <body>
     <?php include '../header.php'; ?>
+        <?php include '../chat/chat.php'; ?>
     <div class="container">
         <h1>Danh Sách Khách Hàng</h1>
 

@@ -32,43 +32,43 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         <nav class="navbar">
             <ul>
-                <li><a href="/index.php" class="<?= $current_file == 'index.php' ? 'active' : '' ?>">Trang Chủ</a></li>
+                <li><a href="/index.php" data-url="/index.php" class="<?= $current_file == 'index.php' ? 'active' : '' ?>">Trang Chủ</a></li>
                 
                 <?php if (hasPermission('manage_users')): ?>
-                    <li><a href="/khach_hang/list.php" class="<?= strpos($current_path, '/khach_hang') !== false ? 'active' : '' ?>">Khách Hàng</a></li>
+                    <li><a href="/khach_hang/list.php" data-url="/khach_hang/list.php" class="<?= strpos($current_path, '/khach_hang') !== false ? 'active' : '' ?>">Khách Hàng</a></li>
                 <?php endif; ?>
                 
                 <?php if (hasPermission('create_po')): ?>
-                    <li><a href="/san_pham/list.php" class="<?= strpos($current_path, '/san_pham') !== false ? 'active' : '' ?>">Sản Phẩm</a></li>
+                    <li><a href="/san_pham/list.php" data-url="/san_pham/list.php" class="<?= strpos($current_path, '/san_pham') !== false ? 'active' : '' ?>">Sản Phẩm</a></li>
                 <?php endif; ?>
                 
                 <?php if (hasPermission('view_po')): ?>
-                    <li><a href="/phieu_dat_hang/list.php" class="<?= strpos($current_path, '/phieu_dat_hang') !== false ? 'active' : '' ?>">Phiếu Đặt Hàng</a></li>
+                    <li><a href="/phieu_dat_hang/list.php" data-url="/phieu_dat_hang/list.php" class="<?= strpos($current_path, '/phieu_dat_hang') !== false ? 'active' : '' ?>">Phiếu Đặt Hàng</a></li>
                 <?php endif; ?>
             
                 
                 <?php if (hasPermission('execute_pxk') || hasRole('kho')): ?>
-                    <li><a href="/phieu_xuat_kho/list.php" class="<?= strpos($current_path, '/phieu_xuat_kho') !== false ? 'active' : '' ?>">Phiếu Xuất Kho</a></li>
+                    <li><a href="/phieu_xuat_kho/list.php" data-url="/phieu_xuat_kho/list.php" class="<?= strpos($current_path, '/phieu_xuat_kho') !== false ? 'active' : '' ?>">Phiếu Xuất Kho</a></li>
                 <?php endif; ?>
                 
                 <?php if (hasPermission('create_invoice') || hasPermission('issue_invoice') || hasPermission('view_invoice')): ?>
-                    <li><a href="/hoa_don/list.php" class="<?= strpos($current_path, '/hoa_don') !== false ? 'active' : '' ?>">Hóa Đơn</a></li>
+                    <li><a href="/hoa_don/list.php" data-url="/hoa_don/list.php" class="<?= strpos($current_path, '/hoa_don') !== false ? 'active' : '' ?>">Hóa Đơn</a></li>
                 <?php endif; ?>
                 
                 <?php if (hasPermission('record_payment')): ?>
-                    <li><a href="/thanh_toan/list.php" class="<?= strpos($current_path, '/thanh_toan') !== false ? 'active' : '' ?>">Thanh Toán</a></li>
+                    <li><a href="/thanh_toan/list.php" data-url="/thanh_toan/list.php" class="<?= strpos($current_path, '/thanh_toan') !== false ? 'active' : '' ?>">Thanh Toán</a></li>
                 <?php endif; ?>
                 
-                <?php if (hasPermission('create_return') || hasPermission('approve_return') || hasRole('kho')): ?>
-                    <li><a href="/tra_hang/list.php" class="<?= strpos($current_path, '/tra_hang') !== false ? 'active' : '' ?>">Trả Hàng</a></li>
+                <?php if (hasPermission('create_return') || hasPermission('approve_return') || hasRole('kho') || hasRole('ketoan')): ?>
+                    <li><a href="/tra_hang/list.php" data-url="/tra_hang/list.php" class="<?= strpos($current_path, '/tra_hang') !== false ? 'active' : '' ?>">Trả Hàng</a></li>
                 <?php endif; ?>
                 
                 <?php if (hasRole('kho')): ?>
-                    <li><a href="/ton_kho/list.php" class="<?= strpos($current_path, '/ton_kho') !== false ? 'active' : '' ?>">Tồn Kho</a></li>
+                    <li><a href="/ton_kho/list.php" data-url="/ton_kho/list.php" class="<?= strpos($current_path, '/ton_kho') !== false ? 'active' : '' ?>">Tồn Kho</a></li>
                 <?php endif; ?>
                 
                 <?php if (hasPermission('manage_users')): ?>
-                    <li><a href="/admin/users.php" class="<?= strpos($current_path, '/admin') !== false ? 'active' : '' ?>">Quản Trị</a></li>
+                    <li><a href="/admin/users.php" data-url="/admin/users.php" class="<?= strpos($current_path, '/admin') !== false ? 'active' : '' ?>">Quản Trị</a></li>
                 <?php endif; ?>
             </ul>
         </nav>
@@ -187,6 +187,21 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         font-size: 20px;
     }
 }
+
+/* THÊM MỚI: Smooth Transition cho Main Content */
+#main-content {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#main-content.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+#main-content.fade-out {
+    opacity: 0;
+}
 </style>
 <!-- THÊM MỚI: Global Socket.IO cho notify real-time (chỉ kế toán, ở tất cả trang có header) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> <!-- Global jQuery nếu chưa có -->
@@ -275,6 +290,99 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         });
     });
 
+    socket.on('system_message', function(data) {
+        $('#chat-body').prepend(`
+            <div class="bg-gray-100 p-3 rounded-lg">
+                <strong>Sale:</strong> ${data.message}
+                <a href="${data.link}"
+                class="block mt-2 text-blue-600 font-semibold hover:underline">
+                👉 Lập hóa đơn
+                </a>
+            </div>
+        `);
+
+        $('#chat-badge').removeClass('hidden');
+    });
+
 
 })();
+
+// THÊM MỚI: Smooth Page Transition với AJAX + History API (Sử dụng jQuery vì đã có)
+$(document).ready(function() {
+    // Chặn click trên nav links và load động
+    $('nav a[data-url]').on('click', function(e) {
+        e.preventDefault();
+        const url = $(this).data('url');
+        loadPage(url, $(this));
+    });
+
+    // Handle browser back/forward
+    $(window).on('popstate', function(e) {
+        if (e.originalEvent.state) {
+            loadPage(location.pathname + location.search, null, true); // Không update active
+        }
+    });
+
+    // Function load page mượt mà
+    function loadPage(url, clickedLink = null, noHistory = false) {
+        const $main = $('#main-content');
+        if (!$main.length) {
+            // Fallback nếu chưa có #main-content (trang đầu)
+            window.location.href = url;
+            return;
+        }
+
+        // Add loading state
+        $main.addClass('loading fade-out');
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function(data) {
+                // Parse HTML response để lấy chỉ phần <main>
+                const $temp = $('<div>').html(data);
+                const $newMain = $temp.find('main').first(); // Giả sử nội dung chính trong <main>
+
+                if ($newMain.length) {
+                    // Update active class cho menu
+                    if (clickedLink) {
+                        $('nav a').removeClass('active');
+                        clickedLink.addClass('active');
+                    }
+
+                    // Replace content với transition
+                    $main.fadeOut(200, function() {
+                        $main.html($newMain.html()).fadeIn(300);
+                        $main.removeClass('loading fade-out');
+                    });
+
+                    // Update URL history (nếu không phải popstate)
+                    if (!noHistory) {
+                        history.pushState({url: url}, '', url);
+                    }
+
+                    // Re-init scripts nếu cần (ví dụ: socket events, tooltips...)
+                    // $(document).trigger('pageLoaded'); // Có thể dùng event custom nếu cần
+                } else {
+                    // Fallback nếu không parse được
+                    window.location.href = url;
+                }
+            },
+            error: function() {
+                $main.removeClass('loading fade-out');
+                alert('Lỗi tải trang. Đang reload...');
+                window.location.href = url;
+            }
+        });
+    }
+
+    // Đăng ký event cho các link khác (nếu cần, ví dụ trong content)
+    $(document).on('click', 'a:not([data-url]):not(.btn-logout-premium):not([target])', function(e) {
+        const href = $(this).attr('href');
+        if (href && href.startsWith('/') && !href.includes('#')) {
+            e.preventDefault();
+            loadPage(href);
+        }
+    });
+});
 </script>

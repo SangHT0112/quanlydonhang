@@ -1,7 +1,6 @@
 <?php
 include '../config.php';
 checkLogin();
-requirePermission('create_return');
 
 $sql = "SELECT t.ma_tra_hang, h.ma_hoa_don, t.ngay_tra, t.ly_do, t.trang_thai
         FROM tra_hang t
@@ -20,9 +19,21 @@ $result = $conn->query($sql);
 <body>
     <div class="container">
         <?php include '../header.php'; ?>
+        <?php include '../chat/chat.php'; ?>
+
         <h1>Danh Sách Trả Hàng</h1>
 
         <main>
+            <?php
+            if (!empty($_SESSION['success'])) {
+                echo "<div class='alert alert-success'>{$_SESSION['success']}</div>";
+                unset($_SESSION['success']);
+            }
+            if (!empty($_SESSION['error'])) {
+                echo "<div class='alert alert-danger'>{$_SESSION['error']}</div>";
+                unset($_SESSION['error']);
+            }
+            ?>
             <table class="table">
                 <thead>
                     <tr>
@@ -46,6 +57,14 @@ $result = $conn->query($sql);
                             echo "<td><span class='status-" . strtolower(str_replace(' ', '-', $row['trang_thai'])) . "'>" . $row['trang_thai'] . "</span></td>";
                             echo "<td>";
                             echo "<a href='detail.php?id=" . $row['ma_tra_hang'] . "' class='btn-info'>Xem</a>";
+                            // Quick approve action for ketoan (fallback when permission not present)
+                            if ($row['trang_thai'] === 'Yêu cầu' && (hasPermission('process_returns') || hasPermission('approve_return') || hasRole('ketoan'))) {
+                                echo " <form method='POST' action='approve.php' style='display:inline-block;margin-left:6px;'>";
+                                echo "<input type='hidden' name='id' value='" . $row['ma_tra_hang'] . "'>";
+                                echo "<input type='hidden' name='action' value='approve'>";
+                                echo "<button class='btn-primary' type='submit' onclick='return confirm(\'Duyệt yêu cầu trả hàng?\')'>Duyệt</button>";
+                                echo "</form>";
+                            }
                             echo "</td>";
                             echo "</tr>";
                         }

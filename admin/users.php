@@ -3,6 +3,33 @@ include '../config.php';
 checkLogin();
 requirePermission('manage_users');
 
+// ================================
+// THÊM QUYỀN MỚI
+// ================================
+if (isset($_POST['add_permission'])) {
+    try {
+        $perm_name = trim($_POST['perm_name']);
+        $perm_desc = trim($_POST['perm_desc']);
+
+        if ($perm_name == '') {
+            $error = "Tên quyền không được để trống!";
+        } else {
+            $stmt = $conn->prepare(
+                "INSERT INTO permissions (name, description) VALUES (?, ?)"
+            );
+            $stmt->bind_param("ss", $perm_name, $perm_desc);
+            $stmt->execute();
+
+            logActivity('ADD_PERMISSION', "Thêm quyền $perm_name");
+            $success = "Thêm quyền thành công!";
+        }
+    } catch (Exception $e) {
+        $error = "Lỗi thêm quyền: " . $e->getMessage();
+    }
+}
+
+
+
 // Xử lý cập nhật vai trò người dùng
 if ($_POST && isset($_POST['action'])) {
     try {

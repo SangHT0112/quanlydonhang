@@ -28,6 +28,7 @@ $result = $conn->query($sql);
 
         
         <?php include '../header.php'; ?>
+        <?php include '../chat/chat.php'; ?>
         <h1>Danh Sách Hóa Đơn</h1>
 
         <main>
@@ -78,12 +79,7 @@ $result = $conn->query($sql);
                             }
 
 
-                            if (hasPermission('create_return')) {
-                                echo "<a href='../tra_hang/create.php?ma_hd=" . $row['ma_hoa_don'] . "'
-                                    class='btn-warning'>
-                                    Trả hàng
-                                </a>";
-                            }
+                           
 
                              
                             echo "</td>";

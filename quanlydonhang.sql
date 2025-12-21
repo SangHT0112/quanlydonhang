@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 19, 2025 at 06:19 AM
+-- Generation Time: Dec 21, 2025 at 02:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -166,7 +166,50 @@ INSERT INTO `activity_log` (`id`, `user`, `action`, `details`, `timestamp`) VALU
 (124, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #31', '2025-12-19 04:54:31'),
 (125, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #32', '2025-12-19 05:08:16'),
 (126, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #32', '2025-12-19 05:08:30'),
-(127, 'Kho 1', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-19 06:15:52');
+(127, 'Kho 1', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-19 06:15:52'),
+(128, 'Kho 1', 'LOGOUT', 'Đăng xuất', '2025-12-19 06:38:00'),
+(129, 'Kế Toán 1', 'LOGIN', 'Đăng nhập thành công - Role: ketoan', '2025-12-19 06:38:07'),
+(130, 'Sale 1', 'LOGIN', 'Đăng nhập thành công - Role: sale', '2025-12-19 06:38:16'),
+(131, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #33', '2025-12-19 06:38:45'),
+(132, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #33', '2025-12-19 06:38:51'),
+(133, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #34', '2025-12-19 06:39:57'),
+(134, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #35', '2025-12-19 06:41:01'),
+(135, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #35', '2025-12-19 06:41:05'),
+(136, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #36', '2025-12-19 06:41:41'),
+(137, 'Kế Toán 1', 'LOGOUT', 'Đăng xuất', '2025-12-19 06:41:45'),
+(138, 'Kế Toán 1', 'LOGIN', 'Đăng nhập thành công - Role: ketoan', '2025-12-19 06:41:52'),
+(139, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #36', '2025-12-19 06:41:54'),
+(140, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #37', '2025-12-19 06:44:34'),
+(141, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #37', '2025-12-19 06:44:40'),
+(142, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #38', '2025-12-19 06:46:23'),
+(143, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #38', '2025-12-19 06:46:49'),
+(144, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #39', '2025-12-19 06:50:56'),
+(145, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #39', '2025-12-19 06:50:57'),
+(146, 'Kho 1', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-20 07:19:30'),
+(147, 'Kế Toán 1', 'LOGIN', 'Đăng nhập thành công - Role: ketoan', '2025-12-20 07:26:15'),
+(148, 'Sale 1', 'LOGIN', 'Đăng nhập thành công - Role: sale', '2025-12-20 07:42:26'),
+(149, 'Sale 1', 'CREATE_PO', 'Tạo phiếu đặt hàng #40', '2025-12-20 07:43:04'),
+(150, 'Sale 1', 'APPROVE_PO', 'Duyệt PO #40', '2025-12-20 07:43:08'),
+(151, 'Kho 1', 'LOGOUT', 'Đăng xuất', '2025-12-20 07:54:42'),
+(152, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-20 07:54:47'),
+(153, 'Guest', 'LOGOUT', 'Đăng xuất', '2025-12-20 07:56:23'),
+(154, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-20 07:56:27'),
+(155, 'Guest', 'LOGOUT', 'Đăng xuất', '2025-12-20 07:57:47'),
+(156, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-20 07:57:52'),
+(157, 'Guest', 'LOGOUT', 'Đăng xuất', '2025-12-20 08:15:14'),
+(158, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: kho', '2025-12-20 08:15:19'),
+(159, 'Guest', 'CREATE_PXK', 'Tạo phiếu xuất kho #4 từ HD #5', '2025-12-20 08:30:16'),
+(160, 'Kế Toán 1', 'LOGOUT', 'Đăng xuất', '2025-12-20 08:41:39'),
+(161, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: sale', '2025-12-20 08:41:46'),
+(162, 'Guest', 'DELETE_PRODUCT', 'Xóa sản phẩm #3', '2025-12-20 08:43:26'),
+(163, 'Guest', 'DELETE_PRODUCT', 'Xóa sản phẩm #4', '2025-12-20 08:43:30'),
+(164, 'Sale 1', 'LOGOUT', 'Đăng xuất', '2025-12-20 08:46:32'),
+(165, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: sale', '2025-12-20 08:46:37'),
+(166, 'Guest', 'CREATE_PRODUCT', 'Thêm sản phẩm #5 - Tủ học sinh (Tồn đầu: 20)', '2025-12-20 08:47:36'),
+(167, 'Guest', 'LOGOUT', 'Đăng xuất', '2025-12-20 09:02:28'),
+(168, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: admin', '2025-12-20 09:02:34'),
+(169, 'Guest', 'LOGOUT', 'Đăng xuất', '2025-12-20 09:35:46'),
+(170, 'Guest', 'LOGIN', 'Đăng nhập thành công - Role: admin', '2025-12-21 02:30:54');
 
 -- --------------------------------------------------------
 
@@ -189,7 +232,9 @@ CREATE TABLE `chi_tiet_hoa_don` (
 --
 
 INSERT INTO `chi_tiet_hoa_don` (`ma_chi_tiet`, `ma_hoa_don`, `ma_san_pham`, `so_luong`, `don_gia`, `chiet_khau`) VALUES
-(3, 3, 2, 1, 500000.00, 0.00);
+(3, 3, 2, 1, 500000.00, 0.00),
+(5, 5, 2, 5, 500000.00, 0.00),
+(7, 7, 2, 1, 500000.00, 0.00);
 
 --
 -- Triggers `chi_tiet_hoa_don`
@@ -224,6 +269,15 @@ CREATE TABLE `chi_tiet_phieu_ban_hang` (
   `chiet_khau` decimal(15,2) DEFAULT 0.00,
   `thanh_tien` decimal(15,2) GENERATED ALWAYS AS (`so_luong` * `gia_ban` - `chiet_khau`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chi_tiet_phieu_ban_hang`
+--
+
+INSERT INTO `chi_tiet_phieu_ban_hang` (`ma_chi_tiet`, `ma_phieu_ban_hang`, `ma_san_pham`, `so_luong`, `gia_ban`, `chiet_khau`) VALUES
+(3, 2, 2, 1, 500000.00, 0.00),
+(4, 3, 2, 1, 500000.00, 0.00),
+(5, 4, 2, 5, 500000.00, 0.00);
 
 --
 -- Triggers `chi_tiet_phieu_ban_hang`
@@ -263,8 +317,10 @@ CREATE TABLE `chi_tiet_phieu_dat_hang` (
 --
 
 INSERT INTO `chi_tiet_phieu_dat_hang` (`ma_chi_tiet`, `ma_phieu_dat_hang`, `ma_san_pham`, `so_luong`, `gia_dat`) VALUES
-(20, 31, 2, 1, 500000.00),
-(21, 32, 2, 1, 500000.00);
+(26, 37, 2, 1, 500000.00),
+(27, 38, 2, 1, 500000.00),
+(28, 39, 2, 5, 500000.00),
+(29, 40, 2, 1, 500000.00);
 
 --
 -- Triggers `chi_tiet_phieu_dat_hang`
@@ -298,6 +354,13 @@ CREATE TABLE `chi_tiet_phieu_xuat_kho` (
   `thanh_tien` decimal(15,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `chi_tiet_phieu_xuat_kho`
+--
+
+INSERT INTO `chi_tiet_phieu_xuat_kho` (`ma_chi_tiet`, `ma_phieu_xuat_kho`, `ma_san_pham`, `so_luong_xuat`, `thanh_tien`) VALUES
+(5, 4, 2, 5, 2500000.00);
+
 -- --------------------------------------------------------
 
 --
@@ -312,6 +375,13 @@ CREATE TABLE `chi_tiet_tra_hang` (
   `gia_tra` decimal(15,2) DEFAULT NULL,
   `thanh_tien_tra` decimal(15,2) GENERATED ALWAYS AS (`so_luong_tra` * `gia_tra`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chi_tiet_tra_hang`
+--
+
+INSERT INTO `chi_tiet_tra_hang` (`ma_chi_tiet`, `ma_tra_hang`, `ma_san_pham`, `so_luong_tra`, `gia_tra`) VALUES
+(2, 2, 2, 5, 500000.00);
 
 -- --------------------------------------------------------
 
@@ -334,7 +404,9 @@ CREATE TABLE `hoa_don` (
 --
 
 INSERT INTO `hoa_don` (`ma_hoa_don`, `ma_phieu_dat_hang`, `ma_phieu_xuat_kho`, `ngay_xuat_hd`, `tong_tien`, `khuyen_mai_tong`, `trang_thai`) VALUES
-(3, 31, NULL, '2025-12-19', 500000.00, 0.00, 'Chưa thanh toán');
+(3, 31, NULL, '2025-12-19', 500000.00, 0.00, 'Chưa thanh toán'),
+(5, 39, 4, '2025-12-19', 2500000.00, 0.00, 'Chưa thanh toán'),
+(7, 40, NULL, '2025-12-20', 500000.00, 0.00, 'Chưa thanh toán');
 
 -- --------------------------------------------------------
 
@@ -436,6 +508,15 @@ CREATE TABLE `phieu_ban_hang` (
   `trang_thai` enum('Duyệt tồn kho','Gửi kế toán','Hoàn thành') DEFAULT 'Duyệt tồn kho'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `phieu_ban_hang`
+--
+
+INSERT INTO `phieu_ban_hang` (`ma_phieu_ban_hang`, `ma_phieu_dat_hang`, `ngay_lap`, `tong_tien`, `trang_thai`) VALUES
+(2, 38, '2025-12-20', 500000.00, 'Gửi kế toán'),
+(3, 37, '2025-12-20', 500000.00, 'Gửi kế toán'),
+(4, 39, '2025-12-20', 2500000.00, 'Gửi kế toán');
+
 -- --------------------------------------------------------
 
 --
@@ -459,8 +540,10 @@ CREATE TABLE `phieu_dat_hang` (
 --
 
 INSERT INTO `phieu_dat_hang` (`ma_phieu_dat_hang`, `ma_khach_hang`, `ngay_dat`, `tong_tien`, `created_by`, `approved_by`, `approved_at`, `trang_thai`, `ghi_chu`) VALUES
-(31, 1, '2025-12-19', 500000.00, 2, 2, NULL, 'Đã duyệt', ''),
-(32, 1, '2025-12-19', 500000.00, 2, 2, NULL, 'Đã duyệt', '');
+(37, 1, '2025-12-19', 500000.00, 2, 2, NULL, 'Đã duyệt', ''),
+(38, 1, '2025-12-19', 500000.00, 2, 2, NULL, '', ''),
+(39, 1, '2025-12-19', 2500000.00, 2, 2, NULL, 'Đã duyệt', ''),
+(40, 1, '2025-12-20', 500000.00, 2, 2, NULL, '', '');
 
 -- --------------------------------------------------------
 
@@ -475,6 +558,13 @@ CREATE TABLE `phieu_xuat_kho` (
   `nguoi_xuat` varchar(100) DEFAULT NULL,
   `trang_thai` enum('Đang xuất','Hoàn thành') DEFAULT 'Đang xuất'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `phieu_xuat_kho`
+--
+
+INSERT INTO `phieu_xuat_kho` (`ma_phieu_xuat_kho`, `ma_phieu_ban_hang`, `ngay_xuat`, `nguoi_xuat`, `trang_thai`) VALUES
+(4, 4, '2025-12-20', 'Kho 1', 'Đang xuất');
 
 --
 -- Triggers `phieu_xuat_kho`
@@ -554,6 +644,8 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (6, 19),
 (6, 20),
 (6, 21),
+(6, 24),
+(6, 31),
 (6, 35),
 (6, 36),
 (6, 37),
@@ -565,7 +657,6 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (7, 30),
 (7, 32),
 (7, 37),
-(8, 19),
 (8, 20),
 (8, 24),
 (8, 25),
@@ -598,8 +689,7 @@ CREATE TABLE `san_pham` (
 INSERT INTO `san_pham` (`ma_san_pham`, `ten_san_pham`, `ma_loai_san_pham`, `gia_ban`, `don_vi`, `mo_ta`, `ngay_tao`) VALUES
 (1, 'Laptop Dell', NULL, 15000000.00, 'Cái', NULL, '2025-11-27 20:10:13'),
 (2, 'Chuột không dây', NULL, 500000.00, 'Cái', NULL, '2025-11-27 20:10:13'),
-(3, 'Laptop gaming', NULL, 120000000.00, 'Cái', '', '2025-12-01 13:06:07'),
-(4, 'Laptop gaminggg', NULL, 35454354.00, 'Cái', '', '2025-12-10 11:51:58');
+(5, 'Tủ học sinh', NULL, 300000.00, 'Cái', '', '2025-12-20 14:47:36');
 
 -- --------------------------------------------------------
 
@@ -651,7 +741,8 @@ CREATE TABLE `ton_kho` (
 
 INSERT INTO `ton_kho` (`ma_ton_kho`, `ma_san_pham`, `so_luong_ton`, `ngay_cap_nhat`) VALUES
 (1, 1, 10, '2025-11-27 20:10:13'),
-(2, 2, 49, '2025-12-19 11:19:29');
+(2, 2, 38, '2025-12-20 14:30:16'),
+(3, 5, 20, '2025-12-20 14:47:36');
 
 -- --------------------------------------------------------
 
@@ -666,6 +757,13 @@ CREATE TABLE `tra_hang` (
   `ly_do` text DEFAULT NULL,
   `trang_thai` enum('Đang xử lý','Hoàn thành') DEFAULT 'Đang xử lý'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tra_hang`
+--
+
+INSERT INTO `tra_hang` (`ma_tra_hang`, `ma_hoa_don`, `ngay_tra`, `ly_do`, `trang_thai`) VALUES
+(2, 5, '2025-12-20', 'không thích', 'Đang xử lý');
 
 --
 -- Triggers `tra_hang`
@@ -901,43 +999,43 @@ ALTER TABLE `user_roles`
 -- AUTO_INCREMENT for table `activity_log`
 --
 ALTER TABLE `activity_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_hoa_don`
 --
 ALTER TABLE `chi_tiet_hoa_don`
-  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_phieu_ban_hang`
 --
 ALTER TABLE `chi_tiet_phieu_ban_hang`
-  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_phieu_dat_hang`
 --
 ALTER TABLE `chi_tiet_phieu_dat_hang`
-  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_phieu_xuat_kho`
 --
 ALTER TABLE `chi_tiet_phieu_xuat_kho`
-  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `chi_tiet_tra_hang`
 --
 ALTER TABLE `chi_tiet_tra_hang`
-  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ma_chi_tiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `hoa_don`
 --
 ALTER TABLE `hoa_don`
-  MODIFY `ma_hoa_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ma_hoa_don` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `khach_hang`
@@ -961,19 +1059,19 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `phieu_ban_hang`
 --
 ALTER TABLE `phieu_ban_hang`
-  MODIFY `ma_phieu_ban_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ma_phieu_ban_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `phieu_dat_hang`
 --
 ALTER TABLE `phieu_dat_hang`
-  MODIFY `ma_phieu_dat_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `ma_phieu_dat_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `phieu_xuat_kho`
 --
 ALTER TABLE `phieu_xuat_kho`
-  MODIFY `ma_phieu_xuat_kho` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ma_phieu_xuat_kho` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -985,7 +1083,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `san_pham`
 --
 ALTER TABLE `san_pham`
-  MODIFY `ma_san_pham` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ma_san_pham` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `tai_khoan`
@@ -1003,13 +1101,13 @@ ALTER TABLE `thanh_toan`
 -- AUTO_INCREMENT for table `ton_kho`
 --
 ALTER TABLE `ton_kho`
-  MODIFY `ma_ton_kho` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ma_ton_kho` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `tra_hang`
 --
 ALTER TABLE `tra_hang`
-  MODIFY `ma_tra_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ma_tra_hang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1111,6 +1209,42 @@ ALTER TABLE `tra_hang`
 ALTER TABLE `user_roles`
   ADD CONSTRAINT `user_roles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `user_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
+-- --------------------------------------------------------
+-- Supplement: returns workflow additions
+-- 1) Extend `tra_hang` with workflow fields and statuses
+-- (keep existing 'Đang xử lý' and 'Hoàn thành' to avoid breaking current data)
+ALTER TABLE `tra_hang`
+  MODIFY COLUMN `trang_thai` ENUM('Yêu cầu','Đang xử lý','Kế toán duyệt','Từ chối','Hoàn thành') DEFAULT 'Yêu cầu',
+  ADD COLUMN `nguoi_tao` INT NULL,
+  ADD COLUMN `nguoi_duyet` INT NULL,
+  ADD COLUMN `ngay_duyet` DATETIME NULL,
+  ADD COLUMN `ghi_chu_duyet` TEXT NULL;
+
+-- 2) Create stock history table for audit (if not already present)
+CREATE TABLE IF NOT EXISTS `lich_su_ton_kho` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `ma_san_pham` INT NOT NULL,
+  `thay_doi` INT NOT NULL,
+  `loai` ENUM('NHAP','XUAT','ADJUST','RETURN') NOT NULL,
+  `ref_table` VARCHAR(100) NULL,
+  `ref_id` BIGINT NULL,
+  `ghi_chu` TEXT NULL,
+  `nguoi_thuc_hien` INT NULL,
+  `ngay_tao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX (`ma_san_pham`),
+  CONSTRAINT `fk_lstk_san_pham` FOREIGN KEY (`ma_san_pham`) REFERENCES `san_pham` (`ma_san_pham`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 3) Add permissions for returns/warehouse processing
+INSERT INTO `permissions` (`id`, `name`, `description`) VALUES
+(38, 'process_returns', 'Xử lý trả hàng'),
+(39, 'create_picklist', 'Tạo phiếu nhận/trả kho');
+
+-- 4) Map new permissions to roles: ketoan (7) and kho (8)
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(7, 38),
+(8, 39);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

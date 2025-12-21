@@ -11,10 +11,10 @@ $don_gia = $_POST['don_gia'];
 $conn->begin_transaction();
 
 try {
-    // 1. Tạo phiếu trả hàng
+    // 1. Tạo phiếu trả hàng (Sales gửi yêu cầu trả)
     $stmt = $conn->prepare("
         INSERT INTO tra_hang (ma_hoa_don, ngay_tra, ly_do, trang_thai)
-        VALUES (?, CURDATE(), ?, 'Đang xử lý')
+        VALUES (?, CURDATE(), ?, 'Yêu cầu')
     ");
     $stmt->bind_param("is", $ma_hd, $ly_do);
     $stmt->execute();
@@ -44,7 +44,11 @@ try {
     }
 
     $conn->commit();
-    header("Location: list.php?success=1");
+
+    // Log hoạt động và thông báo
+    logActivity('CREATE_RETURN', "Tạo yêu cầu trả hàng #$ma_tra_hang từ HD #$ma_hd");
+    $_SESSION['success'] = 'Yêu cầu trả hàng đã được gửi cho kế toán.';
+    header("Location: list.php");
 } catch (Exception $e) {
     $conn->rollback();
     die("Lỗi tạo phiếu trả hàng");

@@ -1,235 +1,175 @@
-<!-- create.php -->
 <?php
+// create.php - HỖ TRỢ AJAX + TOAST + CHAT MESSAGE (SỬA LỖI TRANSACTION)
 include '../config.php';
+
+// Kiểm tra AJAX
+$isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+if ($isAjax) {
+    header('Content-Type: application/json');
+    if (!hasPermission('create_po')) {
+        echo json_encode(['success' => false, 'error' => 'Bạn không có quyền tạo PO']);
+        exit;
+    }
+}
+
 requirePermission('create_po');
 checkLogin();
 
-$error = '';
-$success = '';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    if ($isAjax) {
+        echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+        exit;
+    }
+    die('Invalid request');
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        $ma_kh     = intval($_POST['ma_khach_hang']);
-        $ngay_dat  = $_POST['ngay_dat'];
-        $ghi_chu   = $_POST['ghi_chu'] ?? '';
-        $tong_tien = floatval($_POST['tong_tien']);
-        $user_id   = intval($_SESSION['user_id']);
+try {
+    $ma_kh     = intval($_POST['ma_khach_hang']);
+    $ngay_dat  = $_POST['ngay_dat'];
+    $ghi_chu   = $_POST['ghi_chu'] ?? '';
+    $tong_tien = floatval($_POST['tong_tien']);
+    $user_id   = intval($_SESSION['user_id']);
 
-        if (!$ma_kh || !$ngay_dat) {
-            throw new Exception('Thiếu thông tin bắt buộc');
+    if (!$ma_kh || !$ngay_dat) {
+        throw new Exception('Thiếu thông tin bắt buộc');
+    }
+
+    $conn->begin_transaction();
+
+    // 1️⃣ INSERT PHIẾU ĐẶT HÀNG
+    $sql_po = "
+        INSERT INTO phieu_dat_hang
+        (ma_khach_hang, ngay_dat, tong_tien, ghi_chu, trang_thai, created_by)
+        VALUES (?, ?, ?, ?, 'Chờ duyệt', ?)
+    ";
+    $stmt_po = $conn->prepare($sql_po);
+    $stmt_po->bind_param("isdsi", $ma_kh, $ngay_dat, $tong_tien, $ghi_chu, $user_id);
+    $stmt_po->execute();
+    $ma_po = $conn->insert_id;
+
+    // 2️⃣ INSERT CHI TIẾT SẢN PHẨM
+    $i = 1;
+    while (isset($_POST["ma_san_pham_$i"])) {
+        $ma_sp = intval($_POST["ma_san_pham_$i"]);
+        $sl    = intval($_POST["so_luong_$i"]);
+        $gia   = floatval($_POST["gia_dat_$i"]);
+
+        if ($ma_sp && $sl > 0 && $gia >= 0) {
+            $stmt_ct = $conn->prepare("
+                INSERT INTO chi_tiet_phieu_dat_hang
+                (ma_phieu_dat_hang, ma_san_pham, so_luong, gia_dat)
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt_ct->bind_param("iiid", $ma_po, $ma_sp, $sl, $gia);
+            $stmt_ct->execute();
         }
+        $i++;
+    }
 
-        $conn->begin_transaction();
+    $conn->commit();  // Commit DB trước khi emit socket
 
-        // 1️⃣ INSERT PHIẾU ĐẶT HÀNG (CHỈ 1 LẦN)
-        $sql_po = "
-            INSERT INTO phieu_dat_hang
-            (ma_khach_hang, ngay_dat, tong_tien, ghi_chu, trang_thai, created_by)
-            VALUES (?, ?, ?, ?, 'Chờ duyệt', ?)
+    logActivity('CREATE_PO', "Tạo phiếu đặt hàng #$ma_po");
+
+    // ==============================
+    // SYSTEM MESSAGE CHO CHAT
+    // ==============================
+    $chat_message = "PO mới #$ma_po đã được tạo từ phòng kinh doanh. Kiểm tra và chờ duyệt.";
+    $chat_link = "/phieu_dat_hang/detail.php?id=$ma_po";
+
+    $stmt_msg = $conn->prepare("
+        INSERT INTO system_messages (sender_role, receiver_role, message, action_link)
+        VALUES ('sale', 'ketoan', ?, ?)
+    ");
+    $stmt_msg->bind_param("ss", $chat_message, $chat_link);
+    $stmt_msg->execute();
+
+    // ==============================
+    // REALTIME: EMIT CẢ TOAST + CHAT
+    // ==============================
+    // 1. Toast: po_created
+    $payload_toast = [
+        'event' => 'po_created',
+        'room'  => 'ketoan',
+        'data'  => [
+            'ma_phieu' => $ma_po,
+            'message'  => "Có đơn hàng mới #$ma_po từ phòng kinh doanh"
+        ]
+    ];
+    emitSocket($payload_toast);
+
+    // 2. Chat: system_message
+    $payload_chat = [
+        'event' => 'system_message',
+        'room'  => 'ketoan',
+        'data'  => [
+            'sender'  => 'sale',
+            'message' => $chat_message,
+            'link'    => $chat_link,
+            'time'    => date('Y-m-d H:i:s')
+        ]
+    ];
+    emitSocket($payload_chat);
+
+    // Trả response
+    if ($isAjax) {
+        $sql_detail = "
+            SELECT 
+                p.ma_phieu_dat_hang,
+                k.ten_khach_hang,
+                p.ngay_dat,
+                p.tong_tien,
+                p.trang_thai
+            FROM phieu_dat_hang p
+            JOIN khach_hang k ON p.ma_khach_hang = k.ma_khach_hang
+            WHERE p.ma_phieu_dat_hang = ?
         ";
-        $stmt_po = $conn->prepare($sql_po);
-        $stmt_po->bind_param("isdsi", $ma_kh, $ngay_dat, $tong_tien, $ghi_chu, $user_id);
-        $stmt_po->execute();
-        $ma_po = $conn->insert_id;
+        $stmt_detail = $conn->prepare($sql_detail);
+        $stmt_detail->bind_param("i", $ma_po);
+        $stmt_detail->execute();
+        $poData = $stmt_detail->get_result()->fetch_assoc();
 
-        // 2️⃣ INSERT CHI TIẾT SẢN PHẨM (SỬA: BẮT ĐẦU I=1 VÌ JS TỪ 1)
-        $i = 1;  // Thay đổi nhỏ: Giữ nguyên while, chỉ start i=1 để khớp JS productCount=1
-        while (isset($_POST["ma_san_pham_$i"])) {
-            $ma_sp = intval($_POST["ma_san_pham_$i"]);
-            $sl    = intval($_POST["so_luong_$i"]);
-            $gia   = floatval($_POST["gia_dat_$i"]);
-
-            if ($ma_sp && $sl > 0 && $gia >= 0) {
-                $stmt_ct = $conn->prepare("
-                    INSERT INTO chi_tiet_phieu_dat_hang
-                    (ma_phieu_dat_hang, ma_san_pham, so_luong, gia_dat)
-                    VALUES (?, ?, ?, ?)
-                ");
-                $stmt_ct->bind_param("iiid", $ma_po, $ma_sp, $sl, $gia);
-                $stmt_ct->execute();
-            }
-            $i++;
-        }
-
-        // 3️⃣ GỬI REALTIME CHO KẾ TOÁN
-        $payload = [
-            'event' => 'po_created',
-            'room'  => 'ketoan',
-            'data'  => [
-                'ma_phieu' => $ma_po,
-                'message'  => "Có đơn hàng mới #$ma_po từ phòng kinh doanh"
-            ]
-        ];
-
-        $ch = curl_init('http://localhost:4000/emit');
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_POSTFIELDS => json_encode($payload)
+        echo json_encode([
+            'success' => true,
+            'data' => $poData
         ]);
-        curl_exec($ch);
-        curl_close($ch);
-
-        $conn->commit();
-
-        logActivity('CREATE_PO', "Tạo phiếu đặt hàng #$ma_po");
-
+        exit;
+    } else {
         header("Location: detail.php?id=$ma_po");
         exit;
+    }
 
-    } catch (Exception $e) {
-        $conn->rollback();
+} catch (Exception $e) {
+    $conn->rollback();  // ← SỬA: Bỏ if check, gọi trực tiếp (an toàn cho mysqli)
+    
+    if ($isAjax) {
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+        exit;
+    } else {
         $error = $e->getMessage();
     }
 }
 
-// Load danh sách khách hàng
-$kh_result = $conn->query("SELECT * FROM khach_hang WHERE trang_thai = 'Hoạt động' ORDER BY ten_khach_hang");
+// HELPER: Emit socket (giữ nguyên)
+function emitSocket($payload) {
+    $ch = curl_init('http://localhost:4000/emit');
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 1,
+        CURLOPT_TIMEOUT => 2
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-// Load danh sách sản phẩm
-$sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
+    if ($httpCode !== 200) {
+        error_log("Socket emit failed: HTTP $httpCode, Payload: " . json_encode($payload));
+    }
+}
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo Phiếu Đặt Hàng</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <script>
-        let productCount = 1;
-
-        function addProduct() {
-            const container = document.getElementById('products-container');
-            const newProduct = document.createElement('div');
-            newProduct.className = 'product-row';
-            newProduct.innerHTML = `
-                <div class="form-group">
-                    <label>Sản Phẩm:</label>
-                    <select name="ma_san_pham_${productCount}" class="product-select" onchange="updatePrice(this, ${productCount})">
-                        <option value="">-- Chọn sản phẩm --</option>
-                        <?php
-                        $sp_result2 = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
-                        while($row = $sp_result2->fetch_assoc()) {
-                            echo "<option value='" . $row['ma_san_pham'] . "' data-price='" . $row['gia_ban'] . "'>" . 
-                                 htmlspecialchars($row['ten_san_pham']) . " (" . formatMoney($row['gia_ban']) . " VNĐ)</option>";
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Số Lượng:</label>
-                    <input type="number" name="so_luong_${productCount}" min="1" value="1" class="quantity-input" onchange="calculateTotal()">
-                </div>
-                <div class="form-group">
-                    <label>Giá Đặt:</label>
-                    <input type="number" name="gia_dat_${productCount}" step="0.01" min="0" value="0" class="price-input" onchange="calculateTotal()">
-                </div>
-                <button type="button" class="btn-danger" onclick="removeProduct(this)">Xóa</button>
-            `;
-            container.appendChild(newProduct);
-            productCount++;
-        }
-
-        function updatePrice(select, index) {
-            const option = select.options[select.selectedIndex];
-            const price = option.getAttribute('data-price') || 0;
-            document.querySelector(`input[name="gia_dat_${index}"]`).value = price;
-            calculateTotal();
-        }
-
-        function removeProduct(btn) {
-            btn.parentElement.remove();
-            calculateTotal();
-        }
-
-        function calculateTotal() {
-            let total = 0;
-            const priceInputs = document.querySelectorAll('.price-input');
-            const quantityInputs = document.querySelectorAll('.quantity-input');
-            
-            for (let i = 0; i < priceInputs.length; i++) {
-                const price = parseFloat(priceInputs[i].value) || 0;
-                const quantity = parseInt(quantityInputs[i].value) || 0;
-                total += price * quantity;
-            }
-            
-            // Cập nhật hiển thị tổng tiền
-            const totalDisplay = document.getElementById('total-display');
-            if (totalDisplay) {
-                totalDisplay.textContent = 'Tổng Tiền: ' + formatCurrency(total) + ' VNĐ';
-            }
-            
-            // Cập nhật giá trị input hidden
-            document.getElementById('tong_tien').value = total;
-        }
-
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('vi-VN').format(value);
-        }
-
-        window.onload = function() {
-            addProduct();
-        };
-    </script>
-</head>
-<body>
-    <div class="container">
-        <?php include '../header.php'; ?>
-        <h1>Tạo Phiếu Đặt Hàng Mới</h1>
-
-        <main>
-            <div class="form-container">
-                <?php if ($error): ?>
-                    <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
-                <?php endif; ?>
-
-                <form method="POST" class="form-main">
-                    <div class="form-group">
-                        <label for="ma_khach_hang">Khách Hàng:</label>
-                        <select name="ma_khach_hang" id="ma_khach_hang" required>
-                            <option value="">-- Chọn khách hàng --</option>
-                            <?php
-                            while($row = $kh_result->fetch_assoc()) {
-                                echo "<option value='" . $row['ma_khach_hang'] . "'>" . 
-                                     htmlspecialchars($row['ten_khach_hang']) . "</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="ngay_dat">Ngày Đặt:</label>
-                        <input type="date" name="ngay_dat" id="ngay_dat" required value="<?php echo date('Y-m-d'); ?>">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="ghi_chu">Ghi Chú:</label>
-                        <textarea name="ghi_chu" id="ghi_chu" rows="3"></textarea>
-                    </div>
-
-                    <h3>Chi Tiết Sản Phẩm</h3>
-                    <div id="products-container"></div>
-
-                    <div style="margin-top: 20px;">
-                        <button type="button" class="btn-secondary" onclick="addProduct()">+ Thêm Sản Phẩm</button>
-                    </div>
-
-                    <!-- Input hidden để lưu tổng tiền -->
-                    <input type="hidden" id="tong_tien" name="tong_tien" value="0">
-
-                    <!-- Hiển thị tổng tiền -->
-                    <div style="margin-top: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 5px; font-weight: bold;">
-                        <h3 id="total-display">Tổng Tiền: 0 VNĐ</h3>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">Tạo Phiếu Đặt Hàng</button>
-                        <a href="../index.php" class="btn-secondary">Hủy</a>
-                    </div>
-                </form>
-            </div>
-        </main>
-    </div>
-</body>
-</html>

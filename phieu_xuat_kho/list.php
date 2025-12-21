@@ -73,7 +73,7 @@ $result = $stmt->get_result();
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col">
 
     <?php include '../header.php'; ?>
-
+        <?php include '../chat/chat.php'; ?>
     <main class="flex-1 container mx-auto px-4 py-12 max-w-7xl">
         <div class="mb-10 text-center">
             <h1 class="text-4xl font-bold text-indigo-800 mb-2">Danh Sách Phiếu Xuất Kho</h1>
@@ -81,34 +81,50 @@ $result = $stmt->get_result();
         </div>
 
         <!-- Filter & Create Button -->
-        <div class="bg-white rounded-3xl shadow-2xl p-8 mb-10 border border-indigo-100">
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <input type="text" name="search" placeholder="Tìm khách hàng, người xuất, mã PXK..." 
-                       value="<?= htmlspecialchars($search) ?>"
-                       class="px-5 py-4 border-2 border-gray-300 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition">
+        <div class="bg-white rounded-2xl shadow-lg p-4 mb-8 border border-indigo-100">
+            <form method="GET"
+                class="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
 
-                <select name="trang_thai" class="px-5 py-4 border-2 border-gray-300 rounded-xl focus:border-indigo-500">
-                    <option value="">-- Tất cả trạng thái --</option>
+                <!-- Search -->
+                <input type="text"
+                    name="search"
+                    placeholder="Tìm khách hàng, người xuất, mã PXK..."
+                    value="<?= htmlspecialchars($search) ?>"
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
+
+                <!-- Trạng thái -->
+                <select name="trang_thai"
+                        class="w-full lg:w-56 px-4 py-3 border border-gray-300 rounded-lg focus:border-indigo-500">
+                    <option value="">Tất cả trạng thái</option>
                     <option value="Đang xuất" <?= $trang_thai == 'Đang xuất' ? 'selected' : '' ?>>Đang xuất</option>
                     <option value="Hoàn thành" <?= $trang_thai == 'Hoàn thành' ? 'selected' : '' ?>>Hoàn thành</option>
                 </select>
 
-                <button type="submit" class="bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 shadow-lg transition">
-                    Tìm Kiếm
-                </button>
-                <a href="list.php" class="bg-gray-500 text-white font-bold py-4 rounded-xl text-center hover:bg-gray-600 transition">
-                    Xóa Lọc
-                </a>
-            </form>
+                <!-- Buttons -->
+                <div class="flex gap-2">
+                    <button type="submit"
+                            class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
+                        Lọc
+                    </button>
 
-            <?php if (hasPermission('create_pxk')): ?>
-            <div class="text-right">
-                <a href="../hoa_don/list.php" class="inline-flex items-center px-8 py-5 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xl font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 shadow-2xl transition transform hover:scale-105">
-                    + Tạo Phiếu Xuất Kho Mới (từ Hóa Đơn)
-                </a>
-            </div>
-            <?php endif; ?>
+                    <a href="list.php"
+                    class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">
+                        Reset
+                    </a>
+                </div>
+
+                <!-- Create PXK -->
+                <?php if (hasPermission('create_pxk')): ?>
+                <div class="lg:ml-auto">
+                    <a href="../hoa_don/list.php"
+                    class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg hover:from-green-700 hover:to-emerald-700 shadow transition">
+                        + Tạo PXK
+                    </a>
+                </div>
+                <?php endif; ?>
+            </form>
         </div>
+
 
         <!-- Table List -->
         <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">

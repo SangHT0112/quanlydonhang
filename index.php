@@ -13,6 +13,8 @@ checkLogin();
 <body>
     
            <?= include 'header.php'; ?>
+            <?php include 'chat/chat.php'; ?>
+
     <div class="container">
 
         <main>
