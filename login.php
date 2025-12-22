@@ -194,11 +194,7 @@ if ($_POST) {
             <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
 
-        <div class="demo-info">
-            <strong>Demo Account:</strong>
-            Tài khoản: <strong>admin</strong><br>
-            Mật khẩu: <strong>admin123</strong>
-        </div>
+       
 
         <form method="POST">
             <div class="form-group">

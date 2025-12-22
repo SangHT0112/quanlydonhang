@@ -1261,3 +1261,13 @@ main {
         margin-top: 10px;
     }
 }
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2em;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin: 0; font-size: 32px; font-weight: 800; color: #4338ca;
+}

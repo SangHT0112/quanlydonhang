@@ -18,26 +18,25 @@ $stmt->bind_param("ii", $user_id, $id);
 $stmt->execute();
 
 if ($stmt->affected_rows === 0) {
-    $conn->rollback();  // ← ĐÂY ĐÃ AN TOÀN, KHÔNG CẦN CHECK
+    $conn->rollback();
     die('PO không hợp lệ để duyệt');
 }
 
 // ==============================
-// SYSTEM MESSAGE CHO CHAT
-// ==============================
+// SYSTEM MESSAGE CHO CHAT (INSERT TRƯỚC ĐỂ CÓ ID)
 $message = "PO #$id đã được duyệt. Nhấn để lập hóa đơn.";
 $link = "/hoa_don/create.php?ma_po=$id";
 
 $stmt_msg = $conn->prepare("
-    INSERT INTO system_messages (sender_role, receiver_role, message, action_link)
-    VALUES ('sale', 'ketoan', ?, ?)
+    INSERT INTO system_messages (sender_role, receiver_role, message, action_link, ma_phieu_dat_hang, is_read)
+    VALUES ('sale', 'ketoan', ?, ?, ?, 0)
 ");
-$stmt_msg->bind_param("ss", $message, $link);
+$stmt_msg->bind_param("ssi", $message, $link, $id);
 $stmt_msg->execute();
+$msg_id = $conn->insert_id;  // Lấy ID message để gửi socket
 
 // ==============================
-// REALTIME: EMIT CẢ TOAST + CHAT
-// ==============================
+// REALTIME: EMIT CẢ TOAST + CHAT (GỬI ID VÀ IS_COMPLETED)
 $payload_toast = [
     'event' => 'po_approved',
     'room'  => 'ketoan',
@@ -53,10 +52,13 @@ $payload_chat = [
     'event' => 'system_message',
     'room'  => 'ketoan',
     'data'  => [
-        'sender'  => 'sale',
-        'message' => $message,
-        'link'    => $link,
-        'time'    => date('Y-m-d H:i:s')
+        'id'            => (int)$msg_id,  // ← THÊM: ID từ DB để check duplicate
+        'sender'        => 'sale',
+        'message'       => $message,
+        'link'          => $link,
+        'time'          => date('Y-m-d H:i:s'),
+        'is_read'       => 0,  // Unread mặc định
+        'is_completed'  => false  // ← THÊM: Message mới = chưa hoàn thành
     ]
 ];
 emitSocket($payload_chat);

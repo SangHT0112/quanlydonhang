@@ -71,18 +71,6 @@ try {
 
     logActivity('CREATE_PO', "Tạo phiếu đặt hàng #$ma_po");
 
-    // ==============================
-    // SYSTEM MESSAGE CHO CHAT
-    // ==============================
-    $chat_message = "PO mới #$ma_po đã được tạo từ phòng kinh doanh. Kiểm tra và chờ duyệt.";
-    $chat_link = "/phieu_dat_hang/detail.php?id=$ma_po";
-
-    $stmt_msg = $conn->prepare("
-        INSERT INTO system_messages (sender_role, receiver_role, message, action_link)
-        VALUES ('sale', 'ketoan', ?, ?)
-    ");
-    $stmt_msg->bind_param("ss", $chat_message, $chat_link);
-    $stmt_msg->execute();
 
     // ==============================
     // REALTIME: EMIT CẢ TOAST + CHAT
@@ -97,19 +85,6 @@ try {
         ]
     ];
     emitSocket($payload_toast);
-
-    // 2. Chat: system_message
-    $payload_chat = [
-        'event' => 'system_message',
-        'room'  => 'ketoan',
-        'data'  => [
-            'sender'  => 'sale',
-            'message' => $chat_message,
-            'link'    => $chat_link,
-            'time'    => date('Y-m-d H:i:s')
-        ]
-    ];
-    emitSocket($payload_chat);
 
     // Trả response
     if ($isAjax) {

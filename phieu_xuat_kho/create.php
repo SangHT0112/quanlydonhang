@@ -17,7 +17,9 @@ if ($ma_hd <= 0) {
 
 // ===== KIỂM TRA HÓA ĐƠN ĐÃ CÓ PHIẾU XUẤT KHO CHƯA =====
 $check_pxk = $conn->prepare(
-    "SELECT 1 FROM hoa_don hd JOIN phieu_xuat_kho pxk ON hd.ma_phieu_xuat_kho = pxk.ma_phieu_xuat_kho WHERE hd.ma_hoa_don = ?"
+    "SELECT * FROM phieu_xuat_kho pxk 
+     JOIN hoa_don hd ON pxk.ma_hoa_don = hd.ma_hoa_don 
+     WHERE hd.ma_hoa_don = ?"
 );
 $check_pxk->bind_param("i", $ma_hd);
 $check_pxk->execute();
@@ -47,49 +49,8 @@ if (!$hd) {
     exit;
 }
 
-// ===== KIỂM TRA ĐÃ CÓ PHIẾU BÁN HÀNG (PBH) CHO PO NÀY CHƯA =====
-$check_pbh = $conn->prepare(
-    "SELECT ma_phieu_ban_hang FROM phieu_ban_hang WHERE ma_phieu_dat_hang = ?"
-);
-$check_pbh->bind_param("i", $hd['ma_po']);
-$check_pbh->execute();
-$pbh_result = $check_pbh->get_result()->fetch_assoc();
-
-if (!$pbh_result) {
-    // Nếu chưa có PBH, tạo PBH tạm thời từ PO
-    $sql_create_pbh = "
-        INSERT INTO phieu_ban_hang (ma_phieu_dat_hang, ngay_lap, tong_tien, trang_thai)
-        VALUES (?, CURDATE(), ?, 'Duyệt tồn kho')
-    ";
-    $stmt_pbh = $conn->prepare($sql_create_pbh);
-    $stmt_pbh->bind_param("id", $hd['ma_po'], $hd['tong_tien']);
-    $stmt_pbh->execute();
-    $ma_pbh = $conn->insert_id;
-
-    // Cập nhật chi tiết PBH từ chi tiết HD (giả sử giá bán = giá đặt)
-    $sql_ct_hd = "
-        SELECT cthd.ma_san_pham, cthd.so_luong, cthd.don_gia as gia_ban
-        FROM chi_tiet_hoa_don cthd
-        WHERE cthd.ma_hoa_don = ?
-    ";
-    $stmt_ct_hd = $conn->prepare($sql_ct_hd);
-    $stmt_ct_hd->bind_param("i", $ma_hd);
-    $stmt_ct_hd->execute();
-    $chi_tiet_hd = $stmt_ct_hd->get_result()->fetch_all(MYSQLI_ASSOC);
-
-    foreach ($chi_tiet_hd as $item) {
-        $sql_ct_pbh = "
-            INSERT INTO chi_tiet_phieu_ban_hang
-            (ma_phieu_ban_hang, ma_san_pham, so_luong, gia_ban)
-            VALUES (?, ?, ?, ?)
-        ";
-        $stmt_ct_pbh = $conn->prepare($sql_ct_pbh);
-        $stmt_ct_pbh->bind_param("iiid", $ma_pbh, $item['ma_san_pham'], $item['so_luong'], $item['gia_ban']);
-        $stmt_ct_pbh->execute();
-    }
-} else {
-    $ma_pbh = $pbh_result['ma_phieu_ban_hang'];
-}
+// ===== BỎ LOGIC TẠO PBH (KHÔNG CẦN THIẾT TRONG FLOW HD → PXK) =====
+// PXK trực tiếp ứng với HD (ma_hoa_don)
 
 // ===== LẤY CHI TIẾT HÓA ĐƠN (VÀ TÊN SP) =====
 $sql_ct = "
@@ -126,7 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ton = $stmt_ton->get_result()->fetch_assoc()['so_luong_ton'] ?? 0;
 
         if ($ton < $item['so_luong']) {
-            throw new Exception("Tồn kho sản phẩm {$item['ten_san_pham']} không đủ! Chỉ còn {$ton}, cần {$item['so_luong']}.");
+            $_SESSION['error'] = "Tồn kho sản phẩm {$item['ten_san_pham']} không đủ! Chỉ còn {$ton}, cần {$item['so_luong']}.";  // ← SỬA: Set session error, không throw để tránh loop
+            header("Location: create.php?ma_hd=$ma_hd");
+            exit;
         }
     }
 
@@ -134,14 +97,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // ===== TẠO PHIẾU XUẤT KHO =====
+        // ===== TẠO PHIẾU XUẤT KHO (ỨNG VỚI HD) =====
         $sql_pxk = "
             INSERT INTO phieu_xuat_kho
-            (ma_phieu_ban_hang, ngay_xuat, nguoi_xuat, trang_thai)
+            (ma_hoa_don, ngay_xuat, nguoi_xuat, trang_thai)
             VALUES (?, CURDATE(), ?, 'Đang xuất')
         ";
         $stmt_pxk = $conn->prepare($sql_pxk);
-        $stmt_pxk->bind_param("is", $ma_pbh, $nguoi_xuat);
+        $stmt_pxk->bind_param("is", $ma_hd, $nguoi_xuat);  // ← SỬA: Bind ma_hd (ma_hoa_don)
         $stmt_pxk->execute();
 
         $ma_pxk = $conn->insert_id;
@@ -201,17 +164,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_up_hd->bind_param("ii", $ma_pxk, $ma_hd);
         $stmt_up_hd->execute();
 
-        // ===== CẬP NHẬT TRẠNG THÁI PBH =====
-        $stmt_up_pbh = $conn->prepare("
-            UPDATE phieu_ban_hang SET trang_thai = 'Gửi kế toán' WHERE ma_phieu_ban_hang = ?
-        ");
-        $stmt_up_pbh->bind_param("i", $ma_pbh);
-        $stmt_up_pbh->execute();
+        // ===== BỎ UPDATE PBH (KHÔNG CẦN THIẾT) =====
 
         $conn->commit();
 
         // Log activity
         logActivity('CREATE_PXK', "Tạo phiếu xuất kho #$ma_pxk từ HD #$ma_hd");
+
+        // THÊM MỚI: EMIT SOCKET CHO KẾ TOÁN (UPDATE TRẠNG THÁI TIN NHẮN → HOÀN THÀNH)
+        $payload_pxk_complete = [
+            'event' => 'pxk_created',  // Event mới để update chat
+            'room'  => 'ketoan',
+            'data'  => [
+                'ma_po' => $hd['ma_po'],
+                'ma_hoa_don' => $ma_hd,
+                'ma_pxk' => $ma_pxk,
+                'message' => "Phiếu xuất kho #$ma_pxk từ HD #$ma_hd đã tạo. Sẵn sàng thanh toán!"
+            ]
+        ];
+        emitSocket($payload_pxk_complete);  // Gọi hàm helper ở dưới
 
         $_SESSION['success'] = "Tạo phiếu xuất kho thành công (PXK #$ma_pxk). Tồn kho đã được cập nhật.";
         header('Location: list.php');
@@ -224,6 +195,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
+// HELPER: Emit socket (copy từ hoa_don/create.php nếu chưa có)
+// if (!function_exists('emitSocket')) {
+//     function emitSocket($payload) {
+//         $ch = curl_init('http://localhost:4000/emit');
+//         curl_setopt_array($ch, [
+//             CURLOPT_POST => true,
+//             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+//             CURLOPT_POSTFIELDS => json_encode($payload),
+//             CURLOPT_RETURNTRANSFER => true,
+//             CURLOPT_CONNECTTIMEOUT => 1,
+//             CURLOPT_TIMEOUT => 2
+//         ]);
+//         $response = curl_exec($ch);
+//         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+//         curl_close($ch);
+
+//         if ($httpCode !== 200) {
+//             error_log("Socket emit failed: HTTP $httpCode, Payload: " . json_encode($payload));
+//         }
+//     }
+// }
 ?>
 
 

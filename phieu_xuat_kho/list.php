@@ -12,12 +12,12 @@ $sql = "
         pxk.ngay_xuat,
         pxk.nguoi_xuat,
         pxk.trang_thai,
-        pbh.tong_tien,
+        hd.tong_tien,
         pdh.ma_phieu_dat_hang,
         k.ten_khach_hang
     FROM phieu_xuat_kho pxk
-    JOIN phieu_ban_hang pbh ON pxk.ma_phieu_ban_hang = pbh.ma_phieu_ban_hang
-    JOIN phieu_dat_hang pdh ON pbh.ma_phieu_dat_hang = pdh.ma_phieu_dat_hang
+    JOIN hoa_don hd ON pxk.ma_hoa_don = hd.ma_hoa_don
+    JOIN phieu_dat_hang pdh ON hd.ma_phieu_dat_hang = pdh.ma_phieu_dat_hang
     JOIN khach_hang k ON pdh.ma_khach_hang = k.ma_khach_hang
     WHERE 1=1
 ";
@@ -116,7 +116,7 @@ $result = $stmt->get_result();
                 <!-- Create PXK -->
                 <?php if (hasPermission('create_pxk')): ?>
                 <div class="lg:ml-auto">
-                    <a href="../hoa_don/list.php"
+                    <a href="create.php"
                     class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg hover:from-green-700 hover:to-emerald-700 shadow transition">
                         + Tạo PXK
                     </a>

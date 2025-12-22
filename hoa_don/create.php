@@ -126,16 +126,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_ct_hd->execute();
         }
 
-        // ===== CẬP NHẬT TRẠNG THÁI PO =====
-        $stmt_up = $conn->prepare("
-            UPDATE phieu_dat_hang
-            SET trang_thai = 'Đã lập hóa đơn'
-            WHERE ma_phieu_dat_hang = ?
-        ");
-        $stmt_up->bind_param("i", $ma_po);
-        $stmt_up->execute();
-
         $conn->commit();
+
+        // ==============================
+        // MARK READ CHO SYSTEM_MESSAGE CỦA KẾ TOÁN (GIỮ NGUYÊN)
+        // ==============================
+        $stmt_mark_read = $conn->prepare("
+            UPDATE system_messages 
+            SET is_read = 1 
+            WHERE receiver_role = 'ketoan' 
+              AND ma_phieu_dat_hang = ? 
+              AND is_read = 0
+        ");
+        $stmt_mark_read->bind_param("i", $ma_po);
+        $stmt_mark_read->execute();
+        $marked_count = $stmt_mark_read->affected_rows;
+        if ($marked_count > 0) {
+            error_log("Marked $marked_count system messages as read for PO #$ma_po");
+        }
+
+        // ==============================
+        // THÊM MỚI: GỬI SYSTEM MESSAGE CHO KHO (TIN NHẮN + SOCKET)
+        // ==============================
+        $kho_message = "Hóa đơn #$ma_hoa_don từ PO #$ma_po đã được tạo. Nhấn để lập phiếu xuất kho.";
+        $kho_link = "/phieu_xuat_kho/create.php?ma_hoa_don=$ma_hoa_don";  // Giả sử link này cho kho tạo PXK từ HD
+
+        $stmt_kho_msg = $conn->prepare("
+            INSERT INTO system_messages (sender_role, receiver_role, message, action_link, ma_phieu_dat_hang, is_read)
+            VALUES ('ketoan', 'kho', ?, ?, ?, 0)
+        ");
+        $stmt_kho_msg->bind_param("ssi", $kho_message, $kho_link, $ma_po);  // Sử dụng ma_po để liên kết
+        $stmt_kho_msg->execute();
+        $kho_msg_id = $conn->insert_id;  // Lấy ID message cho socket
+
+        // Emit socket cho kho (system_message)
+        $payload_kho_chat = [
+            'event' => 'system_message',
+            'room'  => 'kho',
+            'data'  => [
+                'id'            => (int)$kho_msg_id,
+                'sender'        => 'ketoan',
+                'message'       => $kho_message,
+                'link'          => $kho_link,
+                'time'          => date('Y-m-d H:i:s'),
+                'is_read'       => 0,
+                'is_completed'  => false  // Chờ xuất kho
+            ]
+        ];
+        emitSocket($payload_kho_chat);
+
+        // Optional: Emit toast cho kho nếu cần (tương tự po_approved)
+        $payload_kho_toast = [
+            'event' => 'hd_created',  // Event mới cho toast
+            'room'  => 'kho',
+            'data'  => [
+                'ma_hoa_don' => $ma_hoa_don,
+                'ma_po'      => $ma_po,
+                'message'    => "Hóa đơn mới #$ma_hoa_don từ PO #$ma_po. Sẵn sàng xuất kho!"
+            ]
+        ];
+        emitSocket($payload_kho_toast);
+
+        // THÊM MỚI: EMIT 'hd_created' CHO KETOAN ĐỂ UPDATE MÀU TIN NHẮN CŨ (ĐỒNG BỘ REAL-TIME)
+        $payload_hd_update = [
+            'event' => 'hd_created',
+            'room'  => 'ketoan',
+            'data'  => [
+                'ma_po' => $ma_po,
+                'ma_hoa_don' => $ma_hoa_don,
+                'message' => 'Hóa đơn đã tạo thành công!'  // Optional toast message
+            ]
+        ];
+        emitSocket($payload_hd_update);
+        
 
         $_SESSION['success'] = "Tạo hóa đơn thành công (HD #$ma_hoa_don)";
         header('Location: list.php');
@@ -146,6 +209,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['error'] = 'Lỗi tạo hóa đơn: ' . $e->getMessage();
         header("Location: create.php?ma_po=$ma_po");
         exit;
+    }
+}
+
+// HELPER: Emit socket (copy từ approve.php)
+function emitSocket($payload) {
+    $ch = curl_init('http://localhost:4000/emit');
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 1,
+        CURLOPT_TIMEOUT => 2
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        error_log("Socket emit failed: HTTP $httpCode, Payload: " . json_encode($payload));
     }
 }
 ?>

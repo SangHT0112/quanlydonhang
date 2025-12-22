@@ -7,9 +7,9 @@ $id = $_GET['id'] ?? 0;
 
 // Prepared statement cho an toàn
 $stmt = $conn->prepare("
-    SELECT pxk.*, pbh.ma_phieu_dat_hang, pbh.ngay_lap, pbh.tong_tien
+    SELECT pxk.*, hd.ma_phieu_dat_hang, hd.ngay_xuat_hd, hd.tong_tien
     FROM phieu_xuat_kho pxk
-    JOIN phieu_ban_hang pbh ON pxk.ma_phieu_ban_hang = pbh.ma_phieu_ban_hang
+    JOIN hoa_don hd ON pxk.ma_hoa_don = hd.ma_hoa_don 
     WHERE pxk.ma_phieu_xuat_kho = ?
 ");
 $stmt->bind_param("i", $id);
@@ -35,7 +35,7 @@ $stmt_ct->bind_param("i", $id);
 $stmt_ct->execute();
 $result_ct = $stmt_ct->get_result();
 
-// Lấy thông tin khách hàng từ phiếu đặt hàng (prepared)
+// Lấy thông tin khách hàng từ phiếu đặt hàng qua HD (prepared)
 $stmt_po = $conn->prepare("
     SELECT pdh.ma_khach_hang, kh.ten_khach_hang, kh.dien_thoai, kh.dia_chi
     FROM phieu_dat_hang pdh
@@ -58,6 +58,8 @@ $khach_hang = $result_po->fetch_assoc();
 <body>
     <div class="container">
         <?php include '../header.php'; ?>
+        <?php include '../chat/chat.php'; ?>  <!-- ← THÊM: Include chat nếu cần real-time notify -->
+        
         <h1>Chi Tiết Phiếu Xuất Kho #<?php echo $id; ?></h1>
 
         <main>
@@ -75,8 +77,8 @@ $khach_hang = $result_po->fetch_assoc();
                     <p><?php echo $pxk['ma_phieu_xuat_kho']; ?></p>
                 </div>
                 <div class="detail-row">
-                    <label>Mã Phiếu Bán Hàng:</label>
-                    <p>#<?php echo $pxk['ma_phieu_ban_hang']; ?></p>
+                    <label>Mã Hóa Đơn:</label>  <!-- ← SỬA: Thay vì Mã Phiếu Bán Hàng -->
+                    <p>#<?php echo $pxk['ma_hoa_don']; ?></p>
                 </div>
                 <div class="detail-row">
                     <label>Mã Phiếu Đặt Hàng:</label>

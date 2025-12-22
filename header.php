@@ -203,23 +203,22 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     opacity: 0;
 }
 </style>
-<!-- THÊM MỚI: Global Socket.IO cho notify real-time (chỉ kế toán, ở tất cả trang có header) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> <!-- Global jQuery nếu chưa có -->
 <script src="http://localhost:4000/socket.io/socket.io.js"></script>
 <script>
 (function() {
-    // Chỉ chạy nếu đã login và role là 'ketoan'
+    // Chỉ chạy nếu đã login. Join room theo role để mỗi role nhận được event riêng
     const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
     const userRole = '<?php echo $_SESSION["role"] ?? "guest"; ?>';
-   
-    if (!isLoggedIn || userRole !== 'ketoan') {
-        return; // Không cần socket nếu chưa login hoặc không phải kế toán
+
+    if (!isLoggedIn) {
+        return; // Không cần socket nếu chưa login
     }
-   
+
     const socket = io('http://localhost:4000');
-   
-    // Join room 'ketoan' để nhận PO mới
-    const room = 'ketoan';
+
+    // Join room theo role hiện tại (ví dụ: 'ketoan', 'kho', 'sale'...)
+    const room = userRole || 'global';
     socket.emit('join-room', room);
     console.log('Global socket joined room:', room, 'for role:', userRole);
     
@@ -237,7 +236,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         // Auto hide sau 5s, hoặc click để close
         setTimeout(() => {
             toast.fadeOut(500, () => toast.remove());
-        }, 5000);
+        }, 10000);
         toast.on('click', () => {
             toast.fadeOut(500, () => toast.remove());
         });
@@ -282,7 +281,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         // Auto hide sau 6s
         setTimeout(() => {
             toast.fadeOut(500, () => toast.remove());
-        }, 6000);
+        }, 10000);
 
         // Click để đóng nhanh
         toast.on('click', () => {
@@ -290,19 +289,68 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         });
     });
 
-    socket.on('system_message', function(data) {
-        $('#chat-body').prepend(`
-            <div class="bg-gray-100 p-3 rounded-lg">
-                <strong>Sale:</strong> ${data.message}
-                <a href="${data.link}"
-                class="block mt-2 text-blue-600 font-semibold hover:underline">
-                👉 Lập hóa đơn
-                </a>
-            </div>
-        `);
+    // 🔔 THÊM MỚI: Hóa đơn đã tạo → kho lập phiếu xuất kho (ORANGE/YELLOW)
+    if (userRole === 'kho') {
+        socket.on('hd_created', function(data) {
+            console.log('HD created:', data);
 
-        $('#chat-badge').removeClass('hidden');
-    });
+            const toast = $(`
+                <div style="
+                    position:fixed;
+                    top:20px;
+                    right:20px;
+                    z-index:9999;
+                    padding:15px 18px;
+                    border-radius:8px;
+                    max-width:320px;
+                    background:linear-gradient(135deg,#fd7e14,#ffc107);
+                    color:#ffffff;
+                    box-shadow:0 6px 16px rgba(0,0,0,0.25);
+                    font-weight:500;
+                    cursor:pointer;
+                ">
+                    <strong style="font-size:16px;">📦 HÓA ĐƠN MỚI</strong><br>
+                    <span style="display:block;margin-top:4px;">${data.message}</span>
+                    <small style="display:block;margin-top:8px;">
+                        <a href="/phieu_xuat_kho/create.php?ma_hoa_don=${data.ma_hoa_don}"
+                        style="color:#ffffff;text-decoration:underline;font-weight:600;">
+                            Lập phiếu xuất kho ngay →
+                        </a>
+                    </small>
+                </div>
+            `);
+
+            $('body').append(toast);
+
+            // Auto hide sau 6s
+            setTimeout(() => {
+                toast.fadeOut(500, () => toast.remove());
+            }, 10000);
+
+            // Click để đóng nhanh
+            toast.on('click', () => {
+                toast.fadeOut(300, () => toast.remove());
+            });
+        });
+    }
+
+    // socket.on('system_message', function(data) {
+    //     // Always show a lightweight global toast in addition to chat widget updates.
+    //     // This ensures roles like `kho` see a visible notification even when the chat box exists.
+    //     try {
+    //         const toast = $(`
+    //             <div style="position:fixed;top:20px;right:20px;z-index:9999;padding:12px;border-radius:8px;background:#fff;border:1px solid #ddd;box-shadow:0 6px 16px rgba(0,0,0,0.12);max-width:360px;">
+    //                 <strong>Thông báo:</strong><br>${data.message}
+    //                 ${data.link ? `<div style="margin-top:8px"><a href="${data.link}" style="text-decoration:underline;color:#0d6efd">👉 Mở</a></div>` : ''}
+    //             </div>
+    //         `);
+    //         $('body').append(toast);
+    //         setTimeout(() => { toast.fadeOut(300, () => toast.remove()); }, 7000);
+    //         toast.on('click', () => { toast.fadeOut(200, () => toast.remove()); });
+    //     } catch (e) {
+    //         console.log('Error showing system_message toast', e, data);
+    //     }
+    // });
 
 
 })();

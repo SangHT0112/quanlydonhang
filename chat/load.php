@@ -7,7 +7,7 @@ $role = $_SESSION['role'];
 $stmt = $conn->prepare("
   SELECT * FROM system_messages
   WHERE receiver_role = ?
-  ORDER BY created_at DESC
+  ORDER BY created_at ASC
   LIMIT 20
 ");
 $stmt->bind_param("s", $role);

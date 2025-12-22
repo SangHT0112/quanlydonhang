@@ -60,6 +60,9 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh Sách Phiếu Đặt Hàng</title>
     <link rel="stylesheet" href="../../css/style.css">
+    <!-- SweetAlert2 CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Modal Styles */
         .modal {
@@ -173,7 +176,7 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
                     if ($result->num_rows > 0) {
                         while($row = $result->fetch_assoc()) {
                             $status_class = strtolower(str_replace([' ', 'ă', 'â', 'đ'], ['-', 'a', 'a', 'd'], $row['trang_thai']));  // Fix class cho VN chars
-                            echo "<tr>";
+                            echo "<tr data-po-id='" . $row['ma_phieu_dat_hang'] . "'>";
                             echo "<td><strong>#" . $row['ma_phieu_dat_hang'] . "</strong></td>";
                             echo "<td>" . htmlspecialchars($row['ten_khach_hang']) . "</td>";
                             echo "<td>" . date('d/m/Y', strtotime($row['ngay_dat'])) . "</td>";
@@ -186,7 +189,7 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
                                     echo "<a href='edit.php?id=" . $row['ma_phieu_dat_hang'] . "' class='btn-warning'>Sửa</a> ";
                                 }
                                 if (hasPermission('delete_po')) {  // Fix: Dùng delete_po
-                                    echo "<a href='delete.php?id=" . $row['ma_phieu_dat_hang'] . "' class='btn-danger' onclick='return confirm(\"Bạn chắc chắn muốn xóa?\")'>Xóa</a>";
+                                    echo "<button onclick=\"confirmDelete({$row['ma_phieu_dat_hang']}, 'Phiếu đặt hàng #{$row['ma_phieu_dat_hang']} - {$row['ten_khach_hang']}')\" class='btn-danger'>Xóa</button>";
                                 }
                             }
                            if ($row['trang_thai'] == 'Đã duyệt' && hasPermission('create_invoice')) {
@@ -402,7 +405,7 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
                     const poData = response.data;
                     const statusClass = poData.trang_thai.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
                     const newRow = `
-                        <tr>
+                        <tr data-po-id="${poData.ma_phieu_dat_hang}">
                             <td><strong>#${poData.ma_phieu_dat_hang}</strong></td>
                             <td>${poData.ten_khach_hang || 'N/A'}</td>
                             <td>${new Date(poData.ngay_dat).toLocaleDateString('vi-VN')}</td>
@@ -459,7 +462,7 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
                 // Tạo row mới (dựa trên cấu trúc table của bạn)
                 const statusClass = poData.trang_thai.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');  // Fix class VN chars
                 const newRow = `
-                    <tr>
+                    <tr data-po-id="${poData.ma_phieu_dat_hang}">
                         <td><strong>#${poData.ma_phieu_dat_hang}</strong></td>
                         <td>${poData.ten_khach_hang || 'N/A'}</td>
                         <td>${new Date(poData.ngay_dat).toLocaleDateString('vi-VN')}</td>
@@ -498,6 +501,60 @@ $sp_result = $conn->query("SELECT * FROM san_pham ORDER BY ten_san_pham");
             return new Intl.NumberFormat('vi-VN').format(amount);
         }
     })();
+
+    // SweetAlert2 cho xóa PO
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'Xác nhận xóa?',
+            html: `Bạn có chắc chắn muốn xóa <strong>${name}</strong>? Hành động này không thể hoàn tác.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Có, xóa ngay!',
+            cancelButtonText: 'Hủy',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // AJAX delete
+                $.ajax({
+                    url: 'delete.php?id=' + id,
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Xóa row khỏi table với animation
+                            $(`tr[data-po-id="${id}"]`).fadeOut(300, function() { 
+                                $(this).remove(); 
+                            });
+                            
+                            Swal.fire(
+                                'Đã xóa!',
+                                response.message,
+                                'success'
+                            );
+                        } else {
+                            Swal.fire(
+                                'Lỗi!',
+                                response.error || 'Có lỗi xảy ra!',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function() {
+                        Swal.fire(
+                            'Lỗi kết nối!',
+                            'Vui lòng thử lại.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    }
     </script>
 </body>
 </html>

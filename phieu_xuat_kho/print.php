@@ -5,11 +5,16 @@ requirePermission('execute_pxk');
 
 $id = $_GET['id'] ?? 0;
 
-$sql = "SELECT pxk.*, pbh.ma_phieu_dat_hang, pbh.ngay_lap, pbh.tong_tien
-        FROM phieu_xuat_kho pxk
-        JOIN phieu_ban_hang pbh ON pxk.ma_phieu_ban_hang = pbh.ma_phieu_ban_hang
-        WHERE pxk.ma_phieu_xuat_kho = " . intval($id);
-$result = $conn->query($sql);
+// Prepared statement cho an toàn
+$stmt = $conn->prepare("
+    SELECT pxk.*, hd.ma_phieu_dat_hang, hd.ngay_xuat_hd as ngay_lap, hd.tong_tien
+    FROM phieu_xuat_kho pxk
+    JOIN hoa_don hd ON pxk.ma_hoa_don = hd.ma_hoa_don 
+    WHERE pxk.ma_phieu_xuat_kho = ?
+");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if ($result->num_rows == 0) {
     header('Location: list.php');
@@ -19,18 +24,26 @@ if ($result->num_rows == 0) {
 $pxk = $result->fetch_assoc();
 
 // Lấy chi tiết sản phẩm
-$sql_ct = "SELECT ct.*, sp.ten_san_pham, sp.don_vi 
-          FROM chi_tiet_phieu_xuat_kho ct
-          JOIN san_pham sp ON ct.ma_san_pham = sp.ma_san_pham
-          WHERE ct.ma_phieu_xuat_kho = " . intval($id);
-$result_ct = $conn->query($sql_ct);
+$stmt_ct = $conn->prepare("
+    SELECT ct.*, sp.ten_san_pham, sp.don_vi 
+    FROM chi_tiet_phieu_xuat_kho ct
+    JOIN san_pham sp ON ct.ma_san_pham = sp.ma_san_pham
+    WHERE ct.ma_phieu_xuat_kho = ?
+");
+$stmt_ct->bind_param("i", $id);
+$stmt_ct->execute();
+$result_ct = $stmt_ct->get_result();
 
 // Lấy thông tin khách hàng
-$sql_kh = "SELECT pdh.ma_khach_hang, kh.ten_khach_hang, kh.dien_thoai, kh.dia_chi
-           FROM phieu_dat_hang pdh
-           JOIN khach_hang kh ON pdh.ma_khach_hang = kh.ma_khach_hang
-           WHERE pdh.ma_phieu_dat_hang = " . intval($pxk['ma_phieu_dat_hang']);
-$result_kh = $conn->query($sql_kh);
+$stmt_kh = $conn->prepare("
+    SELECT pdh.ma_khach_hang, kh.ten_khach_hang, kh.dien_thoai, kh.dia_chi
+    FROM phieu_dat_hang pdh
+    JOIN khach_hang kh ON pdh.ma_khach_hang = kh.ma_khach_hang
+    WHERE pdh.ma_phieu_dat_hang = ?
+");
+$stmt_kh->bind_param("i", $pxk['ma_phieu_dat_hang']);
+$stmt_kh->execute();
+$result_kh = $stmt_kh->get_result();
 $khach_hang = $result_kh->fetch_assoc();
 ?>
 <!DOCTYPE html>
@@ -146,8 +159,8 @@ $khach_hang = $result_kh->fetch_assoc();
                 <span>#<?php echo $pxk['ma_phieu_xuat_kho']; ?></span>
             </div>
             <div class="info-row">
-                <span class="info-label">Mã PBH:</span>
-                <span>#<?php echo $pxk['ma_phieu_ban_hang']; ?></span>
+                <span class="info-label">Mã Hóa Đơn:</span>  <!-- ← SỬA: Thay vì Mã PBH -->
+                <span>#<?php echo $pxk['ma_hoa_don']; ?></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Ngày Xuất:</span>
@@ -194,13 +207,14 @@ $khach_hang = $result_kh->fetch_assoc();
             <?php
             $stt = 1;
             $total = 0;
+            $result_ct->data_seek(0);  // ← SỬA: Reset pointer nếu cần (từ fetch trước)
             while ($row = $result_ct->fetch_assoc()):
                 $total += $row['thanh_tien'];
             ?>
                 <tr>
                     <td><?php echo $stt++; ?></td>
                     <td><?php echo htmlspecialchars($row['ten_san_pham']); ?></td>
-                    <td><?php echo htmlspecialchars($row['don_vi']); ?></td>
+                    <td><?php echo htmlspecialchars($row['don_vi'] ?? 'Cái'); ?></td>
                     <td class="text-right"><?php echo $row['so_luong_xuat']; ?></td>
                     <td class="text-right"><?php echo formatMoney($row['thanh_tien']); ?> VNĐ</td>
                 </tr>
