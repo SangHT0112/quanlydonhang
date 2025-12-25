@@ -37,7 +37,7 @@ try {
 
     $conn->begin_transaction();
 
-    // 1️⃣ INSERT PHIẾU ĐẶT HÀNG
+    // 1 INSERT PHIẾU ĐẶT HÀNG
     $sql_po = "
         INSERT INTO phieu_dat_hang
         (ma_khach_hang, ngay_dat, tong_tien, ghi_chu, trang_thai, created_by)
@@ -48,7 +48,7 @@ try {
     $stmt_po->execute();
     $ma_po = $conn->insert_id;
 
-    // 2️⃣ INSERT CHI TIẾT SẢN PHẨM
+    // 2️ INSERT CHI TIẾT SẢN PHẨM
     $i = 1;
     while (isset($_POST["ma_san_pham_$i"])) {
         $ma_sp = intval($_POST["ma_san_pham_$i"]);
@@ -72,9 +72,7 @@ try {
     logActivity('CREATE_PO', "Tạo phiếu đặt hàng #$ma_po");
 
 
-    // ==============================
-    // REALTIME: EMIT CẢ TOAST + CHAT
-    // ==============================
+
     // 1. Toast: po_created
     $payload_toast = [
         'event' => 'po_created',
@@ -128,7 +126,7 @@ try {
     }
 }
 
-// HELPER: Emit socket (giữ nguyên)
+
 function emitSocket($payload) {
     $ch = curl_init('http://localhost:4000/emit');
     curl_setopt_array($ch, [

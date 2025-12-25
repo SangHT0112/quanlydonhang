@@ -197,26 +197,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // HELPER: Emit socket (copy từ hoa_don/create.php nếu chưa có)
-// if (!function_exists('emitSocket')) {
-//     function emitSocket($payload) {
-//         $ch = curl_init('http://localhost:4000/emit');
-//         curl_setopt_array($ch, [
-//             CURLOPT_POST => true,
-//             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-//             CURLOPT_POSTFIELDS => json_encode($payload),
-//             CURLOPT_RETURNTRANSFER => true,
-//             CURLOPT_CONNECTTIMEOUT => 1,
-//             CURLOPT_TIMEOUT => 2
-//         ]);
-//         $response = curl_exec($ch);
-//         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-//         curl_close($ch);
+if (!function_exists('emitSocket')) {
+    function emitSocket($payload) {
+        $ch = curl_init('http://localhost:4000/emit');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 1,
+            CURLOPT_TIMEOUT => 2
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-//         if ($httpCode !== 200) {
-//             error_log("Socket emit failed: HTTP $httpCode, Payload: " . json_encode($payload));
-//         }
-//     }
-// }
+        if ($httpCode !== 200) {
+            error_log("Socket emit failed: HTTP $httpCode, Payload: " . json_encode($payload));
+        }
+    }
+}
 ?>
 
 
